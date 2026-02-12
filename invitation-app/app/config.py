@@ -24,6 +24,10 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", GMAIL_ADDRESS)
 PUBLIC_DOMAIN = os.getenv("PUBLIC_DOMAIN", "invites.yourdomain.com")
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
 
+# Server ports
+ADMIN_PORT = int(os.getenv("ADMIN_PORT", "5001"))
+PUBLIC_PORT = int(os.getenv("PUBLIC_PORT", "8080"))
+
 # SMS config (Android SMS Gateway)
 SMS_GATEWAY_URL = os.getenv("SMS_GATEWAY_URL", "")
 SMS_GATEWAY_LOGIN = os.getenv("SMS_GATEWAY_LOGIN", "")

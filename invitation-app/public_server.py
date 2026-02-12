@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Public RSVP server - runs on port 8080, exposed via Cloudflare Tunnel."""
+"""Public RSVP server - exposed via Cloudflare Tunnel. Port configurable via PUBLIC_PORT in .env."""
 
 from flask import Flask, send_from_directory
-from app.config import SECRET_KEY, UPLOADS_DIR
+from app.config import SECRET_KEY, UPLOADS_DIR, PUBLIC_PORT
 from app.public.routes import public_bp
 
 app = Flask(__name__)
@@ -15,4 +15,4 @@ def uploaded_file(filename):
 app.register_blueprint(public_bp)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=False)
+    app.run(host="0.0.0.0", port=PUBLIC_PORT, debug=False)

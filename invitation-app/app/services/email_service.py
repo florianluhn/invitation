@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from pathlib import Path
 
-from app.config import GMAIL_ADDRESS, GMAIL_APP_PASSWORD, ADMIN_EMAIL, PUBLIC_DOMAIN, UPLOADS_DIR
+from app.config import GMAIL_ADDRESS, GMAIL_APP_PASSWORD, ADMIN_EMAIL, PUBLIC_DOMAIN, UPLOADS_DIR, ADMIN_PORT
 
 
 def _create_smtp():
@@ -56,7 +56,7 @@ def send_admin_notification(invitee_name, event_title, new_status, event_id):
         <p><strong>{invitee_name}</strong> has responded to <strong>{event_title}</strong>.</p>
         <p>New status: <strong style="color: #4A90D9;">{new_status.upper()}</strong></p>
         <p style="margin-top: 20px;">
-            <a href="http://localhost:5000/events/{event_id}"
+            <a href="http://localhost:{ADMIN_PORT}/events/{event_id}"
                style="background: #4A90D9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                 View Event Dashboard
             </a>
