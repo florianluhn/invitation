@@ -4,12 +4,12 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/invitation-app
-ExecStart=/home/pi/invitation-app/venv/bin/python /home/pi/invitation-app/public_server.py
+User=luhn
+WorkingDirectory=/home/luhn/Apps/invitation/invitation-app
+ExecStart=/home/luhn/Apps/invitation/invitation-app/venv/bin/python /home/luhn/Apps/invitation/invitation-app/public_server.py
 Restart=always
 RestartSec=5
-Environment=PATH=/home/pi/invitation-app/venv/bin:/usr/bin:/bin
+Environment=PATH=/home/luhn/Apps/invitation/invitation-app/venv/bin:/usr/bin:/bin
 
 [Install]
 WantedBy=multi-user.target

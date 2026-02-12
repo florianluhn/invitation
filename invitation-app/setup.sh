@@ -26,7 +26,7 @@ if [ ! -f data/config.json ]; then
 {
   "app_name": "Party Invitations",
   "public_domain": "invites.yourdomain.com",
-  "admin_port": 5000,
+  "admin_port": 5001,
   "public_port": 8080
 }
 CONF
@@ -91,7 +91,7 @@ EOF
     echo "  Services installed and started."
 else
     echo "  Skipped. You can run the servers manually:"
-    echo "    python admin_server.py    (port 5000)"
+    echo "    python admin_server.py    (default port 5001, configurable in .env)"
     echo "    python public_server.py   (port 8080)"
 fi
 
@@ -107,7 +107,7 @@ echo ""
 
 echo "=== Setup Complete ==="
 echo ""
-echo "Admin dashboard: http://localhost:5000"
+echo "Admin dashboard: http://localhost:5001"
 echo "Public RSVP:     http://localhost:8080"
 echo ""
 echo "IMPORTANT: Edit .env with your Gmail credentials before sending invitations."

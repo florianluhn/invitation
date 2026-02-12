@@ -8,7 +8,7 @@ The app runs as **two separate Flask servers** for security:
 
 | Server | Port | Access | Purpose |
 |--------|------|--------|---------|
-| Admin | 5000 | Local network only | Dashboard, event creation, contacts |
+| Admin | 5001 (configurable) | Local network only | Dashboard, event creation, contacts |
 | Public | 8080 | Internet (via Cloudflare Tunnel) | RSVP pages only |
 
 All data is stored in JSON files (no database required).
@@ -18,7 +18,7 @@ All data is stored in JSON files (no database required).
 ### 1. Clone & Setup
 
 ```bash
-cd /home/pi
+cd /home/luhn/Apps/invitation
 git clone <repo-url> invitation-app
 cd invitation-app
 chmod +x setup.sh
@@ -55,7 +55,7 @@ python admin_server.py &
 python public_server.py &
 ```
 
-- Admin dashboard: `http://<pi-ip>:5000`
+- Admin dashboard: `http://<pi-ip>:5001`
 - Public RSVP: `http://<pi-ip>:8080`
 
 ## Systemd Services (Auto-Start on Boot)
@@ -65,7 +65,7 @@ python public_server.py &
 sudo cp invitation-admin.service /etc/systemd/system/
 sudo cp invitation-public.service /etc/systemd/system/
 
-# Edit the paths in the service files if your app isn't at /home/pi/invitation-app
+# Edit the paths in the service files if your app isn't at /home/luhn/Apps/invitation/invitation-app
 sudo nano /etc/systemd/system/invitation-admin.service
 
 # Enable and start
@@ -111,7 +111,7 @@ cloudflared tunnel create invitations
 mkdir -p ~/.cloudflared
 cat > ~/.cloudflared/config.yml << EOF
 tunnel: invitations
-credentials-file: /home/pi/.cloudflared/<TUNNEL-ID>.json
+credentials-file: /home/luhn/.cloudflared/<TUNNEL-ID>.json
 
 ingress:
   - hostname: invites.yourdomain.com
@@ -235,7 +235,7 @@ invitation-app/
 │   └── events/
 ├── templates/invitations/      # Email templates
 ├── uploads/                    # Uploaded photos
-├── admin_server.py             # Admin entry point (port 5000)
+├── admin_server.py             # Admin entry point (default port 5001)
 ├── public_server.py            # Public entry point (port 8080)
 ├── setup.sh                    # Setup script
 └── .env                        # Gmail & SMS credentials
