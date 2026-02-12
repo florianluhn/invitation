@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Contacts - Invitation Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Contacts</h1>
+</div>
+
+<div class="contacts-layout">
+    <!-- Add Contact Form -->
+    <div class="sidebar-panel">
+        <h3>Add Contact</h3>
+        <form method="POST" action="{{ url_for('admin.add_contact') }}">
+            <div class="form-group">
+                <label for="name">Name *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Contact</button>
+        </form>
+
+        <hr>
+
+        <h3>Import CSV</h3>
+        <form method="POST" action="{{ url_for('admin.import_contacts') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="csv_file" accept=".csv" required>
+                <small class="text-muted">Columns: name, email, phone</small>
+            </div>
+            <button type="submit" class="btn btn-secondary">Import</button>
+        </form>
+    </div>
+
+    <!-- Contacts List -->
+    <div class="main-panel">
+        <form method="GET" action="{{ url_for('admin.contacts') }}" class="search-bar">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by name or email...">
+            <button type="submit" class="btn">Search</button>
+            {% if query %}<a href="{{ url_for('admin.contacts') }}" class="btn btn-small">Clear</a>{% endif %}
+        </form>
+
+        {% if contacts %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contacts %}
+                <tr>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.phone or '—' }}</td>
+                    <td class="actions-cell">
+                        <button type="button" class="btn btn-small" onclick="editContact('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone }}')">Edit</button>
+                        <form method="POST" action="{{ url_for('admin.delete_contact', contact_id=c.id) }}" class="inline-form" onsubmit="return confirm('Delete {{ c.name }}?')">
+                            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="text-muted">{{ contacts | length }} contact(s)</p>
+        {% else %}
+        <p class="text-muted">No contacts found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Edit Contact</h3>
+        <form method="POST" id="editForm">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" id="editName" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" id="editEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone" id="editPhone">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editContact(id, name, email, phone) {
+    document.getElementById('editName').value = name;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editPhone').value = phone;
+    document.getElementById('editForm').action = '/contacts/' + id + '/edit';
+    document.getElementById('editModal').style.display = 'flex';
+}
+function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

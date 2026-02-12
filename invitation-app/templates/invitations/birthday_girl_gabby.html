@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#FDE8F0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;font-family:'Trebuchet MS',Arial,sans-serif;">
+  <tr>
+    <td style="padding:8px;">
+      <!-- Outer border with dollhouse colors -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:4px solid #E86BA8;border-radius:24px;overflow:hidden;background:#fff;">
+
+        <!-- Header - Dollhouse roof style -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#E86BA8,#C850C0,#9B59B6);padding:30px 20px 20px;text-align:center;">
+            <!-- Cat ears decoration -->
+            <div style="font-size:40px;margin-bottom:6px;">&#128008; &#127880; &#128008;</div>
+            <p style="color:#FFE4F0;font-size:12px;letter-spacing:4px;text-transform:uppercase;margin:0 0 6px;">You're Invited to</p>
+            <h1 style="color:#fff;font-size:30px;margin:0;text-shadow:2px 2px 4px rgba(0,0,0,0.15);">{{title}}</h1>
+            <!-- Scallop border bottom -->
+            <div style="margin-top:16px;font-size:24px;letter-spacing:4px;color:#FFE4F0;">&#9685; &#9685; &#9685; &#9685; &#9685; &#9685; &#9685;</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:24px 28px;text-align:center;background:linear-gradient(180deg,#FFF5F9,#fff 40%);">
+
+            <!-- Photo -->
+            <div style="display:{{photo_display}};text-align:center;margin:0 0 20px;">
+              <img src="{{photo_url}}" alt="Birthday girl" style="max-width:200px;border-radius:50%;border:5px solid #E86BA8;box-shadow:0 4px 16px rgba(232,107,168,0.3);">
+            </div>
+
+            <!-- Greeting -->
+            <p style="color:#C850C0;font-size:18px;line-height:1.6;margin:0 0 8px;">
+              &#10024; Hey <strong>{{guest_name}}</strong>! &#10024;
+            </p>
+            <p style="color:#666;font-size:15px;line-height:1.7;margin:0 0 20px;">{{message}}</p>
+
+            <!-- Party details box - styled like a room in the dollhouse -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;max-width:380px;">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FDE8F0,#F0E0FF);border:2px dashed #E86BA8;border-radius:16px;padding:20px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:6px 0;text-align:center;">
+                        <span style="font-size:18px;">&#128197;</span>
+                        <span style="color:#9B59B6;font-size:16px;font-weight:bold;margin-left:6px;">{{date}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;text-align:center;">
+                        <span style="font-size:18px;">&#128336;</span>
+                        <span style="color:#9B59B6;font-size:16px;font-weight:bold;margin-left:6px;">{{time}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;text-align:center;">
+                        <span style="font-size:18px;">&#128205;</span>
+                        <span style="color:#9B59B6;font-size:16px;font-weight:bold;margin-left:6px;">{{location}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0 0;text-align:center;">
+                        <span style="color:#C850C0;font-size:13px;">Hosted by {{host}}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Kitty divider -->
+            <div style="font-size:20px;margin:16px 0;letter-spacing:8px;color:#E86BA8;">&#128062; &#128062; &#128062;</div>
+
+            <!-- Call to action -->
+            <p style="color:#9B59B6;font-size:16px;margin:0 0 16px;font-weight:600;">
+              Can you come to the party? &#127881;
+            </p>
+
+            <!-- RSVP Button -->
+            <a href="{{rsvp_url}}" style="display:inline-block;background:linear-gradient(135deg,#E86BA8,#C850C0);color:#fff;padding:16px 44px;border-radius:50px;text-decoration:none;font-size:18px;font-weight:bold;letter-spacing:1px;box-shadow:0 4px 16px rgba(200,80,192,0.35);">
+              &#128062; RSVP Meow! &#128062;
+            </a>
+
+            <!-- Decorative bottom -->
+            <div style="margin-top:24px;font-size:28px;letter-spacing:6px;">&#127856; &#127880; &#11088; &#127752; &#127881;</div>
+
+            <p style="color:#ccc;font-size:11px;margin-top:20px;">
+              <a href="{{rsvp_url}}" style="color:#E86BA8;">{{rsvp_url}}</a>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#E86BA8,#C850C0);padding:12px;text-align:center;">
+            <span style="color:#FFE4F0;font-size:12px;letter-spacing:2px;">&#10024; IT'S A PURRFECT PARTY &#10024;</span>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

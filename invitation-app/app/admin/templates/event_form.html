@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}New Event - Invitation Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Event</h1>
+</div>
+
+<div class="event-editor">
+    <div class="editor-form">
+        <form method="POST" action="{{ url_for('admin.create_event') }}" enctype="multipart/form-data" id="eventForm">
+            <h2>1. Choose Template</h2>
+            <div class="template-picker">
+                {% for tmpl in templates %}
+                <label class="template-option">
+                    <input type="radio" name="template" value="{{ tmpl.value }}" {% if loop.first %}checked{% endif %}>
+                    <span class="template-label">{{ tmpl.label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <h2>2. Event Details</h2>
+            <div class="form-group">
+                <label for="title">Event Title *</label>
+                <input type="text" id="title" name="title" required placeholder="e.g. Emma's 7th Birthday">
+            </div>
+            <div class="form-group">
+                <label for="host">Host Name</label>
+                <input type="text" id="host" name="host" placeholder="e.g. John & Jane Doe">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="time">Time</label>
+                    <input type="time" id="time" name="time">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="location">Location / Address</label>
+                <input type="text" id="location" name="location" placeholder="e.g. 123 Party Lane, City">
+            </div>
+            <div class="form-group">
+                <label for="message">Message / Description</label>
+                <textarea id="message" name="message" rows="3" placeholder="Come celebrate with us!"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="photo">Photo (optional)</label>
+                <input type="file" id="photo" name="photo" accept="image/*">
+            </div>
+
+            <h2>3. Select Recipients</h2>
+            <div class="form-group">
+                <input type="text" id="contactSearch" placeholder="Search contacts..." class="search-input">
+            </div>
+            <div class="contacts-select" id="contactsList">
+                {% if contacts %}
+                {% for c in contacts %}
+                <label class="contact-checkbox" data-has-phone="{{ 'true' if c.phone else 'false' }}">
+                    <input type="checkbox" name="contacts" value="{{ c.id }}">
+                    <span class="contact-info">
+                        <strong>{{ c.name }}</strong>
+                        <small>{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</small>
+                    </span>
+                    <select name="send_method_{{ c.id }}" class="send-method-select small-select">
+                        <option value="email">Email</option>
+                        <option value="sms" {% if not c.phone %}disabled{% endif %}>SMS{% if not c.phone %} (no phone){% endif %}</option>
+                        <option value="both" {% if not c.phone %}disabled{% endif %}>Both{% if not c.phone %} (no phone){% endif %}</option>
+                    </select>
+                </label>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No contacts yet. <a href="{{ url_for('admin.contacts') }}">Add some first.</a></p>
+                {% endif %}
+            </div>
+            <div class="select-actions">
+                <button type="button" onclick="selectAll(true)" class="btn btn-small">Select All</button>
+                <button type="button" onclick="selectAll(false)" class="btn btn-small">Deselect All</button>
+                <span id="selectedCount">0 selected</span>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">Create Event</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="editor-preview">
+        <h2>Preview</h2>
+        <div class="preview-frame" id="previewFrame">
+            <p class="text-muted">Fill in the details to see a preview.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('admin.static', filename='js/event_editor.js') }}"></script>
+{% endblock %}

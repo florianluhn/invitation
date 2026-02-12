@@ -1,0 +1,6 @@
+{
+  "app_name": "Party Invitations",
+  "public_domain": "invites.yourdomain.com",
+  "admin_port": 5000,
+  "public_port": 8080
+}

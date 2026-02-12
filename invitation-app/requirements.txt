@@ -1,0 +1,4 @@
+flask==3.1.0
+python-dotenv==1.1.0
+bleach==6.2.0
+android-sms-gateway[requests]==3.1.1

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} - Invitation Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ event.title }}</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn">&larr; Back to Dashboard</a>
+</div>
+
+<div class="event-info-bar">
+    <span>{{ event.date }} at {{ event.time }}</span>
+    <span>{{ event.location }}</span>
+    <span>Hosted by {{ event.host }}</span>
+    <span>Template: {{ event.template | replace('_', ' ') | title }}</span>
+</div>
+
+{% if event.message %}
+<div class="event-message">
+    <p>{{ event.message }}</p>
+</div>
+{% endif %}
+
+<div class="stats-bar">
+    <div class="stat-box">
+        <span class="stat-num">{{ stats.total }}</span>
+        <span class="stat-label">Total Invited</span>
+    </div>
+    <div class="stat-box stat-accepted">
+        <span class="stat-num">{{ stats.accepted }}</span>
+        <span class="stat-label">Accepted</span>
+    </div>
+    <div class="stat-box stat-declined">
+        <span class="stat-num">{{ stats.declined }}</span>
+        <span class="stat-label">Declined</span>
+    </div>
+    <div class="stat-box stat-maybe">
+        <span class="stat-num">{{ stats.maybe }}</span>
+        <span class="stat-label">Maybe</span>
+    </div>
+    <div class="stat-box stat-pending">
+        <span class="stat-num">{{ stats.pending }}</span>
+        <span class="stat-label">Pending</span>
+    </div>
+</div>
+
+<!-- Send Invitations -->
+<div class="section">
+    <h2>Send Invitations</h2>
+    {% set unsent_email = [] %}
+    {% set unsent_sms = [] %}
+    {% for inv in event.invitees %}
+        {% if inv.send_method in ['email', 'both'] and not inv.email_sent_at %}
+            {% if unsent_email.append(inv) %}{% endif %}
+        {% endif %}
+        {% if inv.send_method in ['sms', 'both'] and not inv.sms_sent_at and inv.phone %}
+            {% if unsent_sms.append(inv) %}{% endif %}
+        {% endif %}
+    {% endfor %}
+    {% if unsent_email or unsent_sms %}
+    <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}">
+        <p>
+            {% if unsent_email %}{{ unsent_email | length }} email(s) unsent. {% endif %}
+            {% if unsent_sms %}{{ unsent_sms | length }} SMS unsent.{% endif %}
+        </p>
+        <button type="submit" class="btn btn-primary">Send All Unsent</button>
+    </form>
+    {% else %}
+    <p class="text-muted">All invitations have been sent.</p>
+    {% endif %}
+</div>
+
+<!-- Attendee List -->
+<div class="section">
+    <h2>Attendees</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Responded</th>
+                <th>Email Sent</th>
+                <th>SMS Sent</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in event.invitees %}
+            <tr>
+                <td>{{ inv.name }}</td>
+                <td>
+                    <small>{{ inv.email }}</small>
+                    {% if inv.phone %}<br><small>{{ inv.phone }}</small>{% endif %}
+                </td>
+                <td><span class="method-badge">{{ inv.send_method or 'email' }}</span></td>
+                <td>
+                    <span class="status-badge status-{{ inv.status }}">{{ inv.status | title }}</span>
+                </td>
+                <td>{{ inv.responded_at[:10] if inv.responded_at else '—' }}</td>
+                <td>
+                    {% if inv.email_sent_at %}
+                        <span class="sent-check" title="{{ inv.email_sent_at }}">&#10003;</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if inv.sms_sent_at %}
+                        <span class="sent-check" title="{{ inv.sms_sent_at }}">&#10003;</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="actions-cell">
+                    <!-- Change Status -->
+                    <form method="POST" action="{{ url_for('admin.update_status', event_id=event.id) }}" class="inline-form">
+                        <input type="hidden" name="contact_id" value="{{ inv.contact_id }}">
+                        <select name="status" class="small-select">
+                            <option value="">Change...</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="declined">Declined</option>
+                            <option value="maybe">Maybe</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                        <button type="submit" class="btn btn-small">Set</button>
+                    </form>
+                    <!-- Resend Email -->
+                    <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
+                        <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
+                        <input type="hidden" name="force_email" value="true">
+                        <button type="submit" class="btn btn-small btn-secondary">Resend Email</button>
+                    </form>
+                    <!-- Resend SMS -->
+                    {% if inv.phone %}
+                    <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
+                        <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
+                        <input type="hidden" name="force_sms" value="true">
+                        <button type="submit" class="btn btn-small btn-secondary">Resend SMS</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
