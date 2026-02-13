@@ -59,7 +59,8 @@ def event_detail(event_id):
 def new_event():
     templates = _get_template_choices()
     contacts = contact_service.get_all_contacts()
-    return render_template("event_form.html", templates=templates, contacts=contacts, event=None)
+    all_tags = contact_service.get_all_tags()
+    return render_template("event_form.html", templates=templates, contacts=contacts, event=None, all_tags=all_tags)
 
 
 @admin_bp.route("/events/new", methods=["POST"])
@@ -235,10 +236,11 @@ def add_contact():
     name = request.form.get("name", "")
     email_addr = request.form.get("email", "")
     phone = request.form.get("phone", "")
+    tags = request.form.get("tags", "")
     if not name or not email_addr:
         flash("Name and email are required.", "error")
     else:
-        contact_service.add_contact(name, email_addr, phone)
+        contact_service.add_contact(name, email_addr, phone, tags)
         flash(f"Contact '{name}' added.", "success")
     return redirect(url_for("admin.contacts"))
 
@@ -248,7 +250,8 @@ def edit_contact(contact_id):
     name = request.form.get("name", "")
     email_addr = request.form.get("email", "")
     phone = request.form.get("phone", "")
-    if contact_service.update_contact(contact_id, name, email_addr, phone):
+    tags = request.form.get("tags", "")
+    if contact_service.update_contact(contact_id, name, email_addr, phone, tags):
         flash("Contact updated.", "success")
     else:
         flash("Contact not found.", "error")

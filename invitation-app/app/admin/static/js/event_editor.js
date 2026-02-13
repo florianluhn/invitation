@@ -86,6 +86,19 @@ if (contactSearch) {
     });
 }
 
+function selectByTag(tag) {
+    document.querySelectorAll('.contact-checkbox').forEach(el => {
+        const tags = (el.getAttribute('data-tags') || '').split(',');
+        if (tags.includes(tag)) {
+            const cb = el.querySelector('input[type="checkbox"]');
+            cb.checked = true;
+            var select = el.querySelector('.send-method-select');
+            if (select) select.style.display = 'inline-block';
+        }
+    });
+    updateSelectedCount();
+}
+
 function selectAll(checked) {
     document.querySelectorAll('.contact-checkbox input[type="checkbox"]').forEach(cb => {
         if (cb.closest('.contact-checkbox').style.display !== 'none') {

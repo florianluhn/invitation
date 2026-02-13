@@ -143,6 +143,13 @@ a:hover { text-decoration: underline; }
 .empty-state h2 { color: #555; margin-bottom: 8px; }
 .empty-state p { color: #888; margin-bottom: 20px; }
 
+/* Tags */
+.tag-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; background: #EBF3FB; color: #4A90D9; margin-right: 4px; }
+.tag-filter-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+.tag-filter-label { font-size: 13px; color: #666; font-weight: 600; margin-right: 4px; }
+.tag-filter-btn { display: inline-block; padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 500; background: #EBF3FB; color: #4A90D9; border: 1px solid #c5d9f0; cursor: pointer; }
+.tag-filter-btn:hover { background: #4A90D9; color: #fff; }
+
 /* Send Method */
 .send-method-select { margin-left: auto; font-size: 12px; padding: 3px 6px; }
 .method-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #e2e3e5; color: #383d41; }
