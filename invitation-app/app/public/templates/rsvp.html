@@ -5,7 +5,7 @@
 <div class="rsvp-container">
     <!-- Invitation Display -->
     <div class="invitation-display">
-        {{ invitation_html | safe }}
+        <iframe class="invitation-frame" srcdoc="{{ invitation_html | e }}" scrolling="no"></iframe>
     </div>
 
     <!-- RSVP Section -->
