@@ -89,7 +89,7 @@ def rsvp_respond(token):
         return render_template("rate_limited.html"), 429
 
     status = request.form.get("status", "")
-    print(f"[RSVP] token={token[:12]}... status='{status}' form_data={dict(request.form)}")
+    print(f"[RSVP] token={token[:12]}... status='{status}' form_data={dict(request.form)} content_type={request.content_type} data_len={request.content_length}")
     if status not in ("accepted", "declined", "maybe"):
         print(f"[RSVP] Invalid status, redirecting without saving")
         return redirect(url_for("public.rsvp_page", token=token))
