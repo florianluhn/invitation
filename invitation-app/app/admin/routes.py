@@ -108,6 +108,19 @@ def create_event():
     return redirect(url_for("admin.event_detail", event_id=event["id"]))
 
 
+# --- Delete Event ---
+
+@admin_bp.route("/events/<event_id>/delete", methods=["POST"])
+def delete_event(event_id):
+    event = event_service.get_event(event_id)
+    if event:
+        event_service.delete_event(event_id)
+        flash(f"Event '{event['title']}' deleted.", "success")
+    else:
+        flash("Event not found.", "error")
+    return redirect(url_for("admin.dashboard"))
+
+
 # --- Send Invitations ---
 
 @admin_bp.route("/events/<event_id>/send", methods=["POST"])

@@ -79,6 +79,15 @@ def create_event(title, host, date, time, location, message, template, photo=Non
     return event
 
 
+def delete_event(event_id):
+    """Delete an event by removing its JSON file."""
+    path = _event_path(event_id)
+    if path.exists():
+        path.unlink()
+        return True
+    return False
+
+
 def update_event(event_id, **kwargs):
     event = get_event(event_id)
     if not event:
