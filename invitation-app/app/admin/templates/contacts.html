@@ -73,7 +73,7 @@
                         {% endfor %}
                     </td>
                     <td class="actions-cell">
-                        <button type="button" class="btn btn-small" onclick="editContact('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone }}', '{{ c.get(\'tags\', []) | join(\', \') }}')">Edit</button>
+                        <button type="button" class="btn btn-small" onclick="editContact('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone }}', '{{ c.get("tags", []) | join(", ") }}')">Edit</button>
                         <form method="POST" action="{{ url_for('admin.delete_contact', contact_id=c.id) }}" class="inline-form" onsubmit="return confirm('Delete {{ c.name }}?')">
                             <button type="submit" class="btn btn-small btn-danger">Delete</button>
                         </form>
