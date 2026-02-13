@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RSVP{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('public.static', filename='css/rsvp.css') }}">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f0f2f5; min-height: 100vh; }
+        .rsvp-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important; }
+        .rsvp-btn:disabled { opacity: 0.6; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; }
+        .error-page { max-width:500px;margin:80px auto;text-align:center;background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.08); }
+        .error-page h1 { font-size:24px;color:#333;margin-bottom:12px; }
+        .error-page p { color:#666;font-size:15px; }
+    </style>
 </head>
 <body>
     {% block content %}{% endblock %}

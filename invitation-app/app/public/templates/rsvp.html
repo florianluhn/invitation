@@ -2,63 +2,90 @@
 {% block title %}RSVP - {{ event.title }}{% endblock %}
 
 {% block content %}
-<div class="rsvp-container">
+<div style="max-width:600px;margin:0 auto;padding:20px 16px 40px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+
     <!-- Invitation Display -->
-    <div class="invitation-display">
+    <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.12);margin-bottom:24px;">
         {{ invitation_html | safe }}
     </div>
 
-    <!-- RSVP Section -->
-    <div class="rsvp-section">
-        <div class="rsvp-card">
-            <h2>RSVP</h2>
-            <p class="guest-name">Hi {{ invitee.name }}!</p>
+    <!-- RSVP Card -->
+    <div style="background:#fff;border-radius:12px;padding:40px 32px;box-shadow:0 4px 24px rgba(0,0,0,0.08);text-align:center;">
 
-            <div class="event-summary">
-                <div class="detail"><span class="label">Event</span> {{ event.title }}</div>
-                <div class="detail"><span class="label">Date</span> {{ format_date(event.date) }}</div>
-                <div class="detail"><span class="label">Time</span> {{ format_time(event.time) }}</div>
-                <div class="detail"><span class="label">Location</span> {{ event.location }}</div>
-            </div>
+        <h2 style="font-size:12px;letter-spacing:4px;text-transform:uppercase;color:#999;margin:0 0 6px;font-weight:600;">Your Response</h2>
+        <p style="font-size:20px;color:#333;margin:0 0 24px;">Hi {{ invitee.name }}!</p>
 
-            {% if invitee.status != 'pending' %}
-            <div class="current-status">
-                <p>Your current response:</p>
-                <span class="status-badge status-{{ invitee.status }}">
-                    {% if invitee.status == 'accepted' %}Attending{% elif invitee.status == 'declined' %}Not Attending{% else %}Maybe{% endif %}
-                </span>
-                <p class="change-hint">You can change your response below.</p>
-            </div>
-            {% endif %}
-
-            {% set responded = request.args.get('responded') %}
-            {% if responded %}
-            <div class="response-confirmation">
-                {% if responded == 'accepted' %}
-                    Thank you! We look forward to seeing you there.
-                {% elif responded == 'maybe' %}
-                    Thanks for letting us know! We hope you can make it.
-                {% elif responded == 'declined' %}
-                    Thank you for letting us know. We'll miss you!
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <form method="POST" action="{{ url_for('public.rsvp_respond', token=token) }}" class="rsvp-buttons">
-                <button type="submit" name="status" value="accepted" class="rsvp-btn rsvp-accept {% if invitee.status == 'accepted' %}active{% endif %}">
-                    <span class="btn-icon">&#10003;</span>
-                    Accept
-                </button>
-                <button type="submit" name="status" value="maybe" class="rsvp-btn rsvp-maybe {% if invitee.status == 'maybe' %}active{% endif %}">
-                    <span class="btn-icon">?</span>
-                    Maybe
-                </button>
-                <button type="submit" name="status" value="declined" class="rsvp-btn rsvp-decline {% if invitee.status == 'declined' %}active{% endif %}">
-                    <span class="btn-icon">&#10007;</span>
-                    Decline
-                </button>
-            </form>
+        <div style="background:#f8f9fb;border-radius:10px;padding:18px 22px;margin-bottom:28px;text-align:left;">
+            <table style="width:100%;border-collapse:collapse;font-size:15px;color:#444;">
+                <tr><td style="padding:5px 0;color:#999;font-size:12px;font-weight:600;text-transform:uppercase;width:80px;vertical-align:top;">Event</td><td style="padding:5px 0;font-weight:500;">{{ event.title }}</td></tr>
+                <tr><td style="padding:5px 0;color:#999;font-size:12px;font-weight:600;text-transform:uppercase;vertical-align:top;">Date</td><td style="padding:5px 0;font-weight:500;">{{ format_date(event.date) }}</td></tr>
+                <tr><td style="padding:5px 0;color:#999;font-size:12px;font-weight:600;text-transform:uppercase;vertical-align:top;">Time</td><td style="padding:5px 0;font-weight:500;">{{ format_time(event.time) }}</td></tr>
+                {% if event.location %}<tr><td style="padding:5px 0;color:#999;font-size:12px;font-weight:600;text-transform:uppercase;vertical-align:top;">Location</td><td style="padding:5px 0;font-weight:500;">{{ event.location }}</td></tr>{% endif %}
+            </table>
         </div>
+
+        {% set responded = request.args.get('responded') %}
+        {% if responded %}
+        <div style="background:#f0faf0;color:#2e7d32;border:1px solid #a5d6a7;border-radius:10px;padding:18px 20px;margin-bottom:24px;font-size:16px;font-weight:500;">
+            {% if responded == 'accepted' %}
+                Thank you! We look forward to seeing you there.
+            {% elif responded == 'maybe' %}
+                Thanks for letting us know! We hope you can make it.
+            {% elif responded == 'declined' %}
+                Thank you for letting us know. We'll miss you!
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if invitee.status != 'pending' %}
+        <p style="font-size:14px;color:#888;margin:0 0 6px;">Your current response:</p>
+        <p style="margin:0 0 20px;">
+            {% if invitee.status == 'accepted' %}
+            <span style="display:inline-block;background:#d4edda;color:#155724;padding:6px 20px;border-radius:20px;font-size:14px;font-weight:600;">Attending</span>
+            {% elif invitee.status == 'declined' %}
+            <span style="display:inline-block;background:#f8d7da;color:#721c24;padding:6px 20px;border-radius:20px;font-size:14px;font-weight:600;">Not Attending</span>
+            {% else %}
+            <span style="display:inline-block;background:#fff3cd;color:#856404;padding:6px 20px;border-radius:20px;font-size:14px;font-weight:600;">Maybe</span>
+            {% endif %}
+        </p>
+        <p style="font-size:13px;color:#aaa;margin:0 0 24px;">You can change your response below.</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('public.rsvp_respond', token=token) }}" class="rsvp-buttons" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+            <button type="submit" name="status" value="accepted" class="rsvp-btn" style="
+                display:flex;flex-direction:column;align-items:center;gap:6px;
+                padding:22px 0;width:150px;
+                border:2px solid #28a745;border-radius:12px;
+                font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
+                transition:all 0.2s ease;
+                {% if invitee.status == 'accepted' %}background:#28a745;color:#fff;{% else %}background:#fff;color:#28a745;{% endif %}
+            ">
+                <span style="font-size:30px;">&#10003;</span>
+                Accept
+            </button>
+            <button type="submit" name="status" value="maybe" class="rsvp-btn" style="
+                display:flex;flex-direction:column;align-items:center;gap:6px;
+                padding:22px 0;width:150px;
+                border:2px solid #e6a817;border-radius:12px;
+                font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
+                transition:all 0.2s ease;
+                {% if invitee.status == 'maybe' %}background:#e6a817;color:#fff;{% else %}background:#fff;color:#e6a817;{% endif %}
+            ">
+                <span style="font-size:30px;">?</span>
+                Maybe
+            </button>
+            <button type="submit" name="status" value="declined" class="rsvp-btn" style="
+                display:flex;flex-direction:column;align-items:center;gap:6px;
+                padding:22px 0;width:150px;
+                border:2px solid #dc3545;border-radius:12px;
+                font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
+                transition:all 0.2s ease;
+                {% if invitee.status == 'declined' %}background:#dc3545;color:#fff;{% else %}background:#fff;color:#dc3545;{% endif %}
+            ">
+                <span style="font-size:30px;">&#10007;</span>
+                Decline
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}
