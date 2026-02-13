@@ -115,6 +115,7 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
         html = html.replace("{{photo_url}}", src)
         html = html.replace("{{photo_display}}", "block")
     else:
+        html = html.replace("{{photo_url}}", "")
         html = html.replace("{{photo_display}}", "none")
 
     if strip_wrapper:
