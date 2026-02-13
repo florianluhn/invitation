@@ -14,18 +14,23 @@ body {
     padding: 20px 16px 40px;
 }
 
-/* Invitation Display - iframe to isolate email HTML */
+/* Invitation Display - isolate email HTML styles */
 .invitation-display {
     margin-bottom: 24px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.12);
 }
-.invitation-frame {
-    width: 100%;
-    min-height: 500px;
-    border: none;
-    display: block;
+/* Override leaked email body styles */
+.invitation-display body {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    line-height: normal !important;
+}
+.invitation-display table {
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* RSVP Card */
@@ -84,6 +89,18 @@ body {
 .status-declined { background: #f8d7da; color: #721c24; }
 .status-maybe { background: #fff3cd; color: #856404; }
 
+/* Response Confirmation */
+.response-confirmation {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
 /* RSVP Buttons */
 .rsvp-buttons {
     display: flex;
@@ -110,6 +127,12 @@ body {
 .rsvp-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.rsvp-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 .btn-icon { font-size: 28px; }
 
@@ -141,5 +164,4 @@ body {
     .rsvp-card { padding: 24px 16px; }
     .rsvp-btn { min-width: 100px; padding: 16px 20px; font-size: 15px; }
     .btn-icon { font-size: 24px; }
-    .invitation-frame { min-height: 450px; }
 }

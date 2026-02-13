@@ -5,7 +5,7 @@
 <div class="rsvp-container">
     <!-- Invitation Display -->
     <div class="invitation-display">
-        <iframe class="invitation-frame" srcdoc="{{ invitation_html | e }}" scrolling="no"></iframe>
+        {{ invitation_html | safe }}
     </div>
 
     <!-- RSVP Section -->
@@ -28,6 +28,19 @@
                     {% if invitee.status == 'accepted' %}Attending{% elif invitee.status == 'declined' %}Not Attending{% else %}Maybe{% endif %}
                 </span>
                 <p class="change-hint">You can change your response below.</p>
+            </div>
+            {% endif %}
+
+            {% set responded = request.args.get('responded') %}
+            {% if responded %}
+            <div class="response-confirmation">
+                {% if responded == 'accepted' %}
+                    Thank you! We look forward to seeing you there.
+                {% elif responded == 'maybe' %}
+                    Thanks for letting us know! We hope you can make it.
+                {% elif responded == 'declined' %}
+                    Thank you for letting us know. We'll miss you!
+                {% endif %}
             </div>
             {% endif %}
 

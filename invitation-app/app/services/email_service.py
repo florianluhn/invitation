@@ -82,13 +82,16 @@ def send_admin_notification(invitee_name, event_title, new_status, event_id):
         print(f"Failed to send admin notification: {e}")
 
 
-def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=None):
+def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=None, strip_wrapper=False):
     """Render an invitation template with event data.
 
     Args:
         photo_url: If provided, used as the photo src (for web display).
                    If None, defaults to cid:event_photo (for inline email).
+        strip_wrapper: If True, strips <html>/<head>/<body> tags for embedding
+                       in a web page, and extracts the body background style.
     """
+    import re
     from app.utils.helpers import format_date, format_time
 
     replacements = {
@@ -113,5 +116,25 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
         html = html.replace("{{photo_display}}", "block")
     else:
         html = html.replace("{{photo_display}}", "none")
+
+    if strip_wrapper:
+        # Extract background from body tag
+        bg_style = ""
+        body_match = re.search(r'<body[^>]*style="([^"]*)"', html, re.IGNORECASE)
+        if body_match:
+            style = body_match.group(1)
+            bg_match = re.search(r'background\s*:\s*([^;]+)', style)
+            if bg_match:
+                bg_style = f"background:{bg_match.group(1).strip()};"
+
+        # Strip doctype, html, head, body tags
+        html = re.sub(r'<!DOCTYPE[^>]*>', '', html, flags=re.IGNORECASE)
+        html = re.sub(r'</?html[^>]*>', '', html, flags=re.IGNORECASE)
+        html = re.sub(r'<head[^>]*>.*?</head>', '', html, flags=re.IGNORECASE | re.DOTALL)
+        html = re.sub(r'</?body[^>]*>', '', html, flags=re.IGNORECASE)
+        html = html.strip()
+
+        # Wrap in a styled div with the extracted background
+        html = f'<div style="{bg_style}padding:0;margin:0;">{html}</div>'
 
     return html

@@ -68,6 +68,7 @@ def rsvp_page(token):
         template_html, event, invitee,
         rsvp_url="#",
         photo_url=photo_url,
+        strip_wrapper=True,
     )
 
     return render_template(
@@ -91,19 +92,26 @@ def rsvp_respond(token):
     if status not in ("accepted", "declined", "maybe"):
         return redirect(url_for("public.rsvp_page", token=token))
 
+    # Check current status before updating to avoid duplicate notifications
+    event, current_invitee = event_service.get_event_by_token(token)
+    if not event:
+        return render_template("not_found.html"), 404
+
+    old_status = current_invitee.get("status")
     event, invitee = event_service.update_rsvp(token, status)
     if not event:
         return render_template("not_found.html"), 404
 
-    # Send admin notification (in background-like fashion, ignore errors)
-    try:
-        email_service.send_admin_notification(
-            invitee_name=invitee["name"],
-            event_title=event["title"],
-            new_status=status,
-            event_id=event["id"],
-        )
-    except Exception:
-        pass
+    # Only send admin notification if status actually changed
+    if status != old_status:
+        try:
+            email_service.send_admin_notification(
+                invitee_name=invitee["name"],
+                event_title=event["title"],
+                new_status=status,
+                event_id=event["id"],
+            )
+        except Exception:
+            pass
 
-    return redirect(url_for("public.rsvp_page", token=token))
+    return redirect(url_for("public.rsvp_page", token=token) + "?responded=" + status)

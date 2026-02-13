@@ -8,5 +8,13 @@
 </head>
 <body>
     {% block content %}{% endblock %}
+    <script>
+    document.querySelectorAll('.rsvp-buttons').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var buttons = form.querySelectorAll('button');
+            buttons.forEach(function(btn) { btn.disabled = true; });
+        });
+    });
+    </script>
 </body>
 </html>
