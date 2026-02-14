@@ -109,6 +109,98 @@ def create_event():
     return redirect(url_for("admin.event_detail", event_id=event["id"]))
 
 
+# --- Edit Event ---
+
+@admin_bp.route("/events/<event_id>/edit", methods=["GET"])
+def edit_event(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+    templates = _get_template_choices()
+    return render_template("event_edit.html", event=event, templates=templates)
+
+
+@admin_bp.route("/events/<event_id>/edit", methods=["POST"])
+def save_event(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    kwargs = {
+        "title": request.form.get("title", ""),
+        "host": request.form.get("host", ""),
+        "date": request.form.get("date", ""),
+        "time": request.form.get("time", ""),
+        "location": request.form.get("location", ""),
+        "message": request.form.get("message", ""),
+        "template": request.form.get("template", event["template"]),
+    }
+
+    if not kwargs["title"] or not kwargs["date"]:
+        flash("Title and date are required.", "error")
+        return redirect(url_for("admin.edit_event", event_id=event_id))
+
+    # Handle photo upload (keep existing if not changed)
+    if "photo" in request.files:
+        file = request.files["photo"]
+        if file and file.filename and _allowed_file(file.filename):
+            photo_filename = secure_filename(file.filename)
+            file.save(UPLOADS_DIR / photo_filename)
+            kwargs["photo"] = photo_filename
+
+    event_service.update_event(event_id, **kwargs)
+    flash("Event updated.", "success")
+    return redirect(url_for("admin.event_detail", event_id=event_id))
+
+
+# --- Add Invitees ---
+
+@admin_bp.route("/events/<event_id>/invitees/add", methods=["GET"])
+def add_invitees_form(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    # Exclude contacts already invited
+    existing_ids = {inv["contact_id"] for inv in event["invitees"]}
+    all_contacts = contact_service.get_all_contacts()
+    available = [c for c in all_contacts if c["id"] not in existing_ids]
+    all_tags = contact_service.get_all_tags()
+
+    return render_template("event_add_invitees.html", event=event, contacts=available, all_tags=all_tags)
+
+
+@admin_bp.route("/events/<event_id>/invitees/add", methods=["POST"])
+def save_invitees(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    contact_ids = request.form.getlist("contacts")
+    all_contacts = contact_service.get_all_contacts()
+    selected = []
+    for c in all_contacts:
+        if c["id"] in contact_ids:
+            send_method = request.form.get(f"send_method_{c['id']}", "email")
+            if not c.get("phone") and send_method in ("sms", "both"):
+                send_method = "email"
+            contact_with_method = c.copy()
+            contact_with_method["send_method"] = send_method
+            selected.append(contact_with_method)
+
+    if selected:
+        event_service.add_invitees(event_id, selected)
+        flash(f"Added {len(selected)} invitee(s).", "success")
+    else:
+        flash("No contacts selected.", "error")
+
+    return redirect(url_for("admin.event_detail", event_id=event_id))
+
+
 # --- Delete Event ---
 
 @admin_bp.route("/events/<event_id>/delete", methods=["POST"])
@@ -141,6 +233,8 @@ def send_invitations(event_id):
     contact_ids = request.form.getlist("contact_ids")
     force_email = request.form.get("force_email") == "true"
     force_sms = request.form.get("force_sms") == "true"
+    email_only = request.form.get("email_only") == "true"
+    sms_only = request.form.get("sms_only") == "true"
     sent_count = 0
     errors = []
 
@@ -161,9 +255,11 @@ def send_invitations(event_id):
         else:
             # Normal send: respect send_method, skip already-sent
             if send_method in ("email", "both") and not inv.get("email_sent_at"):
-                should_email = True
+                if not sms_only:
+                    should_email = True
             if send_method in ("sms", "both") and not inv.get("sms_sent_at") and inv.get("phone"):
-                should_sms = True
+                if not email_only:
+                    should_sms = True
 
         # Send email
         if should_email:

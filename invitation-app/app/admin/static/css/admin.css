@@ -93,6 +93,9 @@ a:hover { text-decoration: underline; }
 /* Section */
 .section { margin-bottom: 28px; }
 .section h2 { font-size: 18px; margin-bottom: 12px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header h2 { margin-bottom: 0; }
+.send-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* Contacts Layout */
 .contacts-layout { display: flex; gap: 24px; }
