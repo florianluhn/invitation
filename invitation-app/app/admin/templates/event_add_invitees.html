@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Add Invitees - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Add Invitees to "{{ event.title }}"</h1>
+    <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">&larr; Back to Event</a>
+</div>
+
+<div class="editor-form" style="max-width: 700px;">
+    <form method="POST" action="{{ url_for('admin.save_invitees', event_id=event.id) }}">
+        {% if all_tags %}
+        <div class="tag-filter-bar">
+            <span class="tag-filter-label">Select by group:</span>
+            {% for tag in all_tags %}
+            <button type="button" class="tag-filter-btn" onclick="selectByTag('{{ tag }}')">{{ tag }}</button>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="form-group">
+            <input type="text" id="contactSearch" placeholder="Search contacts..." class="search-input">
+        </div>
+        <div class="contacts-select" id="contactsList">
+            {% if contacts %}
+            {% for c in contacts %}
+            <label class="contact-checkbox" data-has-phone="{{ 'true' if c.phone else 'false' }}" data-tags="{{ c.get('tags', []) | join(',') }}">
+                <input type="checkbox" name="contacts" value="{{ c.id }}">
+                <span class="contact-info">
+                    <strong>{{ c.name }}</strong>
+                    {% for tag in c.get('tags', []) %}<span class="tag-badge">{{ tag }}</span>{% endfor %}
+                    <small>{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</small>
+                </span>
+                <select name="send_method_{{ c.id }}" class="send-method-select small-select">
+                    <option value="email">Email</option>
+                    <option value="sms" {% if not c.phone %}disabled{% endif %}>SMS{% if not c.phone %} (no phone){% endif %}</option>
+                    <option value="both" {% if not c.phone %}disabled{% endif %}>Both{% if not c.phone %} (no phone){% endif %}</option>
+                </select>
+            </label>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">All contacts are already invited, or no contacts exist.</p>
+            {% endif %}
+        </div>
+        <div class="select-actions">
+            <button type="button" onclick="selectAll(true)" class="btn btn-small">Select All</button>
+            <button type="button" onclick="selectAll(false)" class="btn btn-small">Deselect All</button>
+            <span id="selectedCount">0 selected</span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">Add Selected Invitees</button>
+            <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('admin.static', filename='js/event_editor.js') }}"></script>
+{% endblock %}

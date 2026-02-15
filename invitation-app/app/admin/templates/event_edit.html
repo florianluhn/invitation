@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ event.title }} - Invitation Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Edit Event</h1>
+    <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">&larr; Back to Event</a>
+</div>
+
+<div class="event-editor">
+    <div class="editor-form">
+        <form method="POST" action="{{ url_for('admin.save_event', event_id=event.id) }}" enctype="multipart/form-data" id="eventForm">
+            <h2>1. Choose Template</h2>
+            <div class="template-picker">
+                {% for tmpl in templates %}
+                <label class="template-option">
+                    <input type="radio" name="template" value="{{ tmpl.value }}" {% if tmpl.value == event.template %}checked{% endif %}>
+                    <span class="template-label">{{ tmpl.label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <h2>2. Event Details</h2>
+            <div class="form-group">
+                <label for="title">Event Title *</label>
+                <input type="text" id="title" name="title" required value="{{ event.title }}">
+            </div>
+            <div class="form-group">
+                <label for="host">Host Name</label>
+                <input type="text" id="host" name="host" value="{{ event.host }}">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" required value="{{ event.date }}">
+                </div>
+                <div class="form-group">
+                    <label for="time">Time</label>
+                    <input type="time" id="time" name="time" value="{{ event.time }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="location">Location / Address</label>
+                <input type="text" id="location" name="location" value="{{ event.location }}">
+            </div>
+            <div class="form-group">
+                <label for="message">Message / Description</label>
+                <textarea id="message" name="message" rows="3">{{ event.message }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="photo">Photo{% if event.photo %} (current: {{ event.photo }}){% endif %}</label>
+                <input type="file" id="photo" name="photo" accept="image/*">
+                {% if event.photo %}
+                <small class="text-muted">Leave empty to keep current photo.</small>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">Save Changes</button>
+                <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="editor-preview">
+        <h2>Preview</h2>
+        <div class="preview-frame" id="previewFrame">
+            <p class="text-muted">Fill in the details to see a preview.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('admin.static', filename='js/event_editor.js') }}"></script>
+{% endblock %}

@@ -23,6 +23,10 @@
                 <label for="phone">Phone</label>
                 <input type="text" id="phone" name="phone">
             </div>
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input type="text" id="tags" name="tags" placeholder="Family, VIP, Work...">
+            </div>
             <button type="submit" class="btn btn-primary">Add Contact</button>
         </form>
 
@@ -32,7 +36,7 @@
         <form method="POST" action="{{ url_for('admin.import_contacts') }}" enctype="multipart/form-data">
             <div class="form-group">
                 <input type="file" name="csv_file" accept=".csv" required>
-                <small class="text-muted">Columns: name, email, phone</small>
+                <small class="text-muted">Columns: name, email, phone, tags</small>
             </div>
             <button type="submit" class="btn btn-secondary">Import</button>
         </form>
@@ -53,6 +57,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Tags</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -62,8 +67,13 @@
                     <td>{{ c.name }}</td>
                     <td>{{ c.email }}</td>
                     <td>{{ c.phone or '—' }}</td>
+                    <td>
+                        {% for tag in c.get('tags', []) %}
+                            <span class="tag-badge">{{ tag }}</span>
+                        {% endfor %}
+                    </td>
                     <td class="actions-cell">
-                        <button type="button" class="btn btn-small" onclick="editContact('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone }}')">Edit</button>
+                        <button type="button" class="btn btn-small" onclick="editContact('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone }}', '{{ c.get("tags", []) | join(", ") }}')">Edit</button>
                         <form method="POST" action="{{ url_for('admin.delete_contact', contact_id=c.id) }}" class="inline-form" onsubmit="return confirm('Delete {{ c.name }}?')">
                             <button type="submit" class="btn btn-small btn-danger">Delete</button>
                         </form>
@@ -96,6 +106,10 @@
                 <label>Phone</label>
                 <input type="text" name="phone" id="editPhone">
             </div>
+            <div class="form-group">
+                <label>Tags</label>
+                <input type="text" name="tags" id="editTags" placeholder="Family, VIP, Work...">
+            </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="button" class="btn" onclick="closeModal()">Cancel</button>
@@ -107,10 +121,11 @@
 
 {% block scripts %}
 <script>
-function editContact(id, name, email, phone) {
+function editContact(id, name, email, phone, tags) {
     document.getElementById('editName').value = name;
     document.getElementById('editEmail').value = email;
     document.getElementById('editPhone').value = phone;
+    document.getElementById('editTags').value = tags || '';
     document.getElementById('editForm').action = '/contacts/' + id + '/edit';
     document.getElementById('editModal').style.display = 'flex';
 }

@@ -52,16 +52,25 @@
             </div>
 
             <h2>3. Select Recipients</h2>
+            {% if all_tags %}
+            <div class="tag-filter-bar">
+                <span class="tag-filter-label">Select by group:</span>
+                {% for tag in all_tags %}
+                <button type="button" class="tag-filter-btn" onclick="selectByTag('{{ tag }}')">{{ tag }}</button>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="form-group">
                 <input type="text" id="contactSearch" placeholder="Search contacts..." class="search-input">
             </div>
             <div class="contacts-select" id="contactsList">
                 {% if contacts %}
                 {% for c in contacts %}
-                <label class="contact-checkbox" data-has-phone="{{ 'true' if c.phone else 'false' }}">
+                <label class="contact-checkbox" data-has-phone="{{ 'true' if c.phone else 'false' }}" data-tags="{{ c.get('tags', []) | join(',') }}">
                     <input type="checkbox" name="contacts" value="{{ c.id }}">
                     <span class="contact-info">
                         <strong>{{ c.name }}</strong>
+                        {% for tag in c.get('tags', []) %}<span class="tag-badge">{{ tag }}</span>{% endfor %}
                         <small>{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</small>
                     </span>
                     <select name="send_method_{{ c.id }}" class="send-method-select small-select">

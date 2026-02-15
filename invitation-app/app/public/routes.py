@@ -66,7 +66,7 @@ def rsvp_page(token):
     # Render with event data (no RSVP link needed since they're already here)
     invitation_html = email_service.render_invitation_email(
         template_html, event, invitee,
-        rsvp_url="#",
+        rsvp_url="#rsvp-form",
         photo_url=photo_url,
         strip_wrapper=True,
     )
@@ -89,18 +89,24 @@ def rsvp_respond(token):
         return render_template("rate_limited.html"), 429
 
     status = request.form.get("status", "")
+    print(f"[RSVP] token={token[:12]}... status='{status}' form_data={dict(request.form)} content_type={request.content_type} data_len={request.content_length}")
     if status not in ("accepted", "declined", "maybe"):
+        print(f"[RSVP] Invalid status, redirecting without saving")
         return redirect(url_for("public.rsvp_page", token=token))
 
     # Check current status before updating to avoid duplicate notifications
     event, current_invitee = event_service.get_event_by_token(token)
     if not event:
+        print(f"[RSVP] Event not found for token")
         return render_template("not_found.html"), 404
 
     old_status = current_invitee.get("status")
     event, invitee = event_service.update_rsvp(token, status)
     if not event:
+        print(f"[RSVP] update_rsvp returned None")
         return render_template("not_found.html"), 404
+
+    print(f"[RSVP] Updated: {invitee['name']} {old_status} -> {status} (event: {event['id']})")
 
     # Only send admin notification if status actually changed
     if status != old_status:

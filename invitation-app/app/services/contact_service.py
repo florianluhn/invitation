@@ -17,12 +17,24 @@ def get_contact(contact_id):
     return None
 
 
-def add_contact(name, email, phone=""):
+def _parse_tags(tags_input):
+    """Parse tags from a list or comma-separated string. Returns cleaned list."""
+    if isinstance(tags_input, list):
+        raw = tags_input
+    elif isinstance(tags_input, str):
+        raw = [t.strip() for t in tags_input.split(",")]
+    else:
+        raw = []
+    return [sanitize(t) for t in raw if t.strip()]
+
+
+def add_contact(name, email, phone="", tags=None):
     contact = {
         "id": generate_id(),
         "name": sanitize(name),
         "email": sanitize(email).lower(),
         "phone": sanitize(phone),
+        "tags": _parse_tags(tags),
         "created_at": now_iso(),
     }
     with locked_json_write(CONTACTS_FILE) as contacts:
@@ -30,13 +42,14 @@ def add_contact(name, email, phone=""):
     return contact
 
 
-def update_contact(contact_id, name, email, phone=""):
+def update_contact(contact_id, name, email, phone="", tags=None):
     with locked_json_write(CONTACTS_FILE) as contacts:
         for c in contacts:
             if c["id"] == contact_id:
                 c["name"] = sanitize(name)
                 c["email"] = sanitize(email).lower()
                 c["phone"] = sanitize(phone)
+                c["tags"] = _parse_tags(tags)
                 return c
     return None
 
@@ -66,11 +79,13 @@ def import_contacts_csv(csv_content):
             if email in existing_emails:
                 skipped += 1
                 continue
+            tags_str = row.get("tags", "").strip()
             contacts.append({
                 "id": generate_id(),
                 "name": sanitize(name),
                 "email": sanitize(email),
                 "phone": sanitize(phone),
+                "tags": _parse_tags(tags_str),
                 "created_at": now_iso(),
             })
             existing_emails.add(email)
@@ -82,4 +97,17 @@ def import_contacts_csv(csv_content):
 def search_contacts(query):
     query = query.lower()
     contacts = get_all_contacts()
-    return [c for c in contacts if query in c["name"].lower() or query in c["email"].lower()]
+    return [c for c in contacts if
+            query in c["name"].lower() or
+            query in c["email"].lower() or
+            any(query in t.lower() for t in c.get("tags", []))]
+
+
+def get_all_tags():
+    """Return sorted list of unique tags across all contacts."""
+    contacts = get_all_contacts()
+    tags = set()
+    for c in contacts:
+        for t in c.get("tags", []):
+            tags.add(t)
+    return sorted(tags)

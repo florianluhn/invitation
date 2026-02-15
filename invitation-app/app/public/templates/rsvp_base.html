@@ -19,8 +19,12 @@
     <script>
     document.querySelectorAll('.rsvp-buttons').forEach(function(form) {
         form.addEventListener('submit', function() {
-            var buttons = form.querySelectorAll('button');
-            buttons.forEach(function(btn) { btn.disabled = true; });
+            // Disable buttons after a short delay so the clicked button's
+            // name/value is included in the form data before disabling
+            setTimeout(function() {
+                var buttons = form.querySelectorAll('button');
+                buttons.forEach(function(btn) { btn.disabled = true; });
+            }, 10);
         });
     });
     </script>
