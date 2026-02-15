@@ -82,6 +82,70 @@ def send_admin_notification(invitee_name, event_title, new_status, event_id):
         print(f"Failed to send admin notification: {e}")
 
 
+def send_reminder_email(to_email, to_name, event, days_remaining, rsvp_url):
+    """Send a reminder email for an upcoming event."""
+    from app.utils.helpers import format_date, format_time
+
+    title = event["title"]
+    date = format_date(event["date"])
+    time_str = format_time(event["time"])
+    location = event.get("location", "")
+
+    if days_remaining == 0:
+        days_text = "today"
+    elif days_remaining == 1:
+        days_text = "tomorrow"
+    else:
+        days_text = f"in {days_remaining} days"
+
+    subject = f"Reminder: {title} is {days_text}"
+
+    html = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #333; margin: 0 0 16px;">Friendly Reminder</h2>
+        <p style="font-size: 16px; color: #444;">
+            Hi <strong>{to_name}</strong>,
+        </p>
+        <p style="font-size: 16px; color: #444;">
+            Just a reminder that <strong>{title}</strong> is <strong>{days_text}</strong>!
+        </p>
+        <div style="background: #f8f9fb; border-radius: 8px; padding: 16px 20px; margin: 20px 0;">
+            <p style="margin: 4px 0; color: #555;"><strong>Date:</strong> {date}</p>
+            <p style="margin: 4px 0; color: #555;"><strong>Time:</strong> {time_str}</p>
+            {"<p style='margin: 4px 0; color: #555;'><strong>Location:</strong> " + location + "</p>" if location else ""}
+        </div>
+        <p style="font-size: 15px; color: #555;">
+            If you haven't responded yet, please let us know if you can make it:
+        </p>
+        <p style="text-align: center; margin: 24px 0;">
+            <a href="{rsvp_url}"
+               style="background: #4A90D9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                Respond Now
+            </a>
+        </p>
+        <p style="color: #aaa; font-size: 12px; text-align: center;">
+            <a href="{rsvp_url}" style="color: #999;">{rsvp_url}</a>
+        </p>
+    </div>
+    """
+
+    plain = f"Reminder: {title} is {days_text}! {date} at {time_str}. RSVP: {rsvp_url}"
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = GMAIL_ADDRESS
+    msg["To"] = to_email
+
+    msg.attach(MIMEText(plain, "plain"))
+    msg.attach(MIMEText(html, "html"))
+
+    server = _create_smtp()
+    try:
+        server.sendmail(GMAIL_ADDRESS, to_email, msg.as_string())
+    finally:
+        server.quit()
+
+
 def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=None, strip_wrapper=False):
     """Render an invitation template with event data.
 

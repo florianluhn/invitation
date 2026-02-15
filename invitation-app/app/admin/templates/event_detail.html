@@ -82,6 +82,41 @@
     {% endif %}
 </div>
 
+<!-- Send Reminders -->
+<div class="section">
+    <h2>Send Reminders</h2>
+    {% set reminder_eligible = [] %}
+    {% for inv in event.invitees %}
+        {% if inv.status != 'declined' %}
+            {% if reminder_eligible.append(inv) %}{% endif %}
+        {% endif %}
+    {% endfor %}
+    {% set email_eligible = [] %}
+    {% set sms_eligible = [] %}
+    {% for inv in reminder_eligible %}
+        {% if inv.email %}{% if email_eligible.append(inv) %}{% endif %}{% endif %}
+        {% if inv.phone %}{% if sms_eligible.append(inv) %}{% endif %}{% endif %}
+    {% endfor %}
+    <p class="text-muted">Sends to all invitees except those who declined ({{ reminder_eligible | length }} eligible).</p>
+    <div class="send-buttons">
+        {% if email_eligible %}
+        <form method="POST" action="{{ url_for('admin.send_reminders', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send reminder email to {{ email_eligible | length }} invitee(s)?');">
+            <input type="hidden" name="method" value="email">
+            <button type="submit" class="btn btn-primary">Send Reminder Email to All ({{ email_eligible | length }})</button>
+        </form>
+        {% endif %}
+        {% if sms_eligible %}
+        <form method="POST" action="{{ url_for('admin.send_reminders', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send reminder SMS to {{ sms_eligible | length }} invitee(s)?');">
+            <input type="hidden" name="method" value="sms">
+            <button type="submit" class="btn btn-primary">Send Reminder SMS to All ({{ sms_eligible | length }})</button>
+        </form>
+        {% endif %}
+        {% if not email_eligible and not sms_eligible %}
+        <p class="text-muted">No eligible recipients for reminders.</p>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Attendee List -->
 <div class="section">
     <div class="section-header">

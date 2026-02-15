@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 
@@ -295,6 +296,73 @@ def send_invitations(event_id):
 
     if sent_count:
         flash(f"Sent {sent_count} invitation(s).", "success")
+    if errors:
+        for err in errors:
+            flash(err, "error")
+
+    return redirect(url_for("admin.event_detail", event_id=event_id))
+
+
+# --- Send Reminders ---
+
+@admin_bp.route("/events/<event_id>/remind", methods=["POST"])
+def send_reminders(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    method = request.form.get("method", "")
+    if method not in ("email", "sms"):
+        flash("Invalid reminder method.", "error")
+        return redirect(url_for("admin.event_detail", event_id=event_id))
+
+    # Calculate days remaining
+    try:
+        event_date = date.fromisoformat(event["date"])
+        days_remaining = (event_date - date.today()).days
+    except (ValueError, TypeError):
+        days_remaining = 0
+
+    # Filter: skip declined invitees
+    eligible = [inv for inv in event.get("invitees", []) if inv.get("status") != "declined"]
+
+    sent_count = 0
+    errors = []
+
+    for inv in eligible:
+        if method == "email" and inv.get("email"):
+            rsvp_url = f"https://{PUBLIC_DOMAIN}/rsvp/{inv['token']}"
+            try:
+                email_service.send_reminder_email(
+                    to_email=inv["email"],
+                    to_name=inv["name"],
+                    event=event,
+                    days_remaining=days_remaining,
+                    rsvp_url=rsvp_url,
+                )
+                sent_count += 1
+            except Exception as e:
+                errors.append(f"Email to {inv['name']}: {e}")
+
+        elif method == "sms" and inv.get("phone"):
+            short_url = f"https://{PUBLIC_DOMAIN}/r/{inv.get('short_token', '')}"
+            try:
+                sms_service.send_reminder_sms(
+                    to_phone=inv["phone"],
+                    to_name=inv["name"],
+                    event=event,
+                    days_remaining=days_remaining,
+                    short_rsvp_url=short_url,
+                )
+                sent_count += 1
+            except Exception as e:
+                errors.append(f"SMS to {inv['name']}: {e}")
+
+    if sent_count:
+        flash(f"Sent {sent_count} reminder(s) via {method}.", "success")
+    elif not errors:
+        flash("No eligible recipients found.", "warning")
     if errors:
         for err in errors:
             flash(err, "error")

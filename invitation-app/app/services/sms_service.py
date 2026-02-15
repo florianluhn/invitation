@@ -81,6 +81,54 @@ def format_sms_message(event, short_rsvp_url):
     return message
 
 
+def format_reminder_sms(event, days_remaining, short_rsvp_url):
+    """Format an SMS reminder message, targeting under 160 characters."""
+    title = event["title"]
+    date = format_date(event["date"])
+    time_str = format_time(event["time"])
+
+    if len(title) > 35:
+        title = title[:32] + "..."
+
+    if days_remaining == 0:
+        days_text = "today"
+    elif days_remaining == 1:
+        days_text = "tomorrow"
+    else:
+        days_text = f"in {days_remaining} days"
+
+    lines = [
+        f"Reminder: {title} is {days_text}!",
+        f"{date} @ {time_str}",
+        f"RSVP: {short_rsvp_url}",
+    ]
+
+    return "\n".join(lines)
+
+
+def send_reminder_sms(to_phone, to_name, event, days_remaining, short_rsvp_url):
+    """Send an SMS reminder via the Android SMS Gateway app."""
+    _ensure_configured()
+
+    normalized = normalize_phone_number(to_phone)
+    if not normalized:
+        raise ValueError(f"Invalid phone number for {to_name}: {to_phone}")
+
+    message_text = format_reminder_sms(event, days_remaining, short_rsvp_url)
+
+    message = domain.Message(
+        phone_numbers=[normalized],
+        text_message=domain.TextMessage(text=message_text),
+    )
+
+    with client.APIClient(
+        SMS_GATEWAY_LOGIN,
+        SMS_GATEWAY_PASSWORD,
+        base_url=SMS_GATEWAY_URL,
+    ) as c:
+        c.send(message)
+
+
 def send_sms_invitation(to_phone, to_name, event, short_rsvp_url):
     """Send an SMS invitation via the Android SMS Gateway app.
 
