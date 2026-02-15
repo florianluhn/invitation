@@ -7,3 +7,11 @@ invitation-app/uploads/*
 invitation-app/!uploads/.gitkeep
 .claude/
 invitation-app/data/contacts.json
+.env
+venv/
+__pycache__/
+*.pyc
+data/events/*.json
+uploads/*
+!uploads/.gitkeep
+.claude/
