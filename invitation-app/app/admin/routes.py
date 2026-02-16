@@ -3,7 +3,7 @@ from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 
-from app.config import INVITATION_TEMPLATES_DIR, UPLOADS_DIR, PUBLIC_DOMAIN
+from app.config import INVITATION_TEMPLATES_DIR, UPLOADS_DIR, PUBLIC_DOMAIN, SENDER_PROFILES, get_sender_profile
 from app.services import contact_service, event_service, email_service, sms_service
 from app.utils.helpers import sanitize
 
@@ -61,7 +61,7 @@ def new_event():
     templates = _get_template_choices()
     contacts = contact_service.get_all_contacts()
     all_tags = contact_service.get_all_tags()
-    return render_template("event_form.html", templates=templates, contacts=contacts, event=None, all_tags=all_tags)
+    return render_template("event_form.html", templates=templates, contacts=contacts, event=None, all_tags=all_tags, sender_profiles=SENDER_PROFILES)
 
 
 @admin_bp.route("/events/new", methods=["POST"])
@@ -73,6 +73,7 @@ def create_event():
     location = request.form.get("location", "")
     message = request.form.get("message", "")
     template = request.form.get("template", "generic_party")
+    sender_profile_name = request.form.get("sender_profile", "primary")
     contact_ids = request.form.getlist("contacts")
 
     if not title or not date:
@@ -104,6 +105,7 @@ def create_event():
         title=title, host=host, date=date, time=time,
         location=location, message=message, template=template,
         photo=photo_filename, contacts=selected,
+        sender_profile=sender_profile_name,
     )
 
     flash(f"Event '{title}' created with {len(selected)} invitees.", "success")
@@ -119,7 +121,7 @@ def edit_event(event_id):
         flash("Event not found.", "error")
         return redirect(url_for("admin.dashboard"))
     templates = _get_template_choices()
-    return render_template("event_edit.html", event=event, templates=templates)
+    return render_template("event_edit.html", event=event, templates=templates, sender_profiles=SENDER_PROFILES)
 
 
 @admin_bp.route("/events/<event_id>/edit", methods=["POST"])
@@ -137,6 +139,7 @@ def save_event(event_id):
         "location": request.form.get("location", ""),
         "message": request.form.get("message", ""),
         "template": request.form.get("template", event["template"]),
+        "sender_profile": request.form.get("sender_profile", event.get("sender_profile", "primary")),
     }
 
     if not kwargs["title"] or not kwargs["date"]:
@@ -224,6 +227,9 @@ def send_invitations(event_id):
         flash("Event not found.", "error")
         return redirect(url_for("admin.dashboard"))
 
+    # Get sender profile for this event
+    profile = get_sender_profile(event.get("sender_profile", "primary"))
+
     # Load invitation template for email
     tmpl_path = INVITATION_TEMPLATES_DIR / f"{event['template']}.html"
     if not tmpl_path.exists():
@@ -273,6 +279,7 @@ def send_invitations(event_id):
                     subject=f"You're Invited: {event['title']}",
                     html_content=html,
                     photo_filename=event.get("photo"),
+                    sender_profile=profile,
                 )
                 event_service.mark_email_sent(event_id, inv["contact_id"])
                 sent_count += 1
@@ -288,6 +295,7 @@ def send_invitations(event_id):
                     to_name=inv["name"],
                     event=event,
                     short_rsvp_url=short_url,
+                    sender_profile=profile,
                 )
                 event_service.mark_sms_sent(event_id, inv["contact_id"])
                 sent_count += 1
@@ -317,6 +325,9 @@ def send_reminders(event_id):
         flash("Invalid reminder method.", "error")
         return redirect(url_for("admin.event_detail", event_id=event_id))
 
+    # Get sender profile for this event
+    profile = get_sender_profile(event.get("sender_profile", "primary"))
+
     # Calculate days remaining
     try:
         event_date = date.fromisoformat(event["date"])
@@ -340,6 +351,7 @@ def send_reminders(event_id):
                     event=event,
                     days_remaining=days_remaining,
                     rsvp_url=rsvp_url,
+                    sender_profile=profile,
                 )
                 sent_count += 1
             except Exception as e:
@@ -354,6 +366,7 @@ def send_reminders(event_id):
                     event=event,
                     days_remaining=days_remaining,
                     short_rsvp_url=short_url,
+                    sender_profile=profile,
                 )
                 sent_count += 1
             except Exception as e:

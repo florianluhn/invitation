@@ -29,6 +29,16 @@
                 <label for="host">Host Name</label>
                 <input type="text" id="host" name="host" value="{{ event.host }}">
             </div>
+            {% if sender_profiles | length > 1 %}
+            <div class="form-group">
+                <label for="sender_profile">Send From</label>
+                <select id="sender_profile" name="sender_profile" class="small-select">
+                    {% for key, profile in sender_profiles.items() %}
+                    <option value="{{ key }}" {% if event.get('sender_profile', 'primary') == key %}selected{% endif %}>{{ profile.gmail_address }}{% if key == 'primary' %} (Primary){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
             <div class="form-row">
                 <div class="form-group">
                     <label for="date">Date *</label>

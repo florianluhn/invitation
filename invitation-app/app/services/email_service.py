@@ -7,18 +7,20 @@ from pathlib import Path
 from app.config import GMAIL_ADDRESS, GMAIL_APP_PASSWORD, ADMIN_EMAIL, PUBLIC_DOMAIN, UPLOADS_DIR, ADMIN_PORT, ADMIN_HOST
 
 
-def _create_smtp():
+def _create_smtp(gmail_address=None, gmail_password=None):
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    server.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
+    server.login(gmail_address or GMAIL_ADDRESS, gmail_password or GMAIL_APP_PASSWORD)
     return server
 
 
-def send_invitation(to_email, to_name, subject, html_content, photo_filename=None):
+def send_invitation(to_email, to_name, subject, html_content, photo_filename=None, sender_profile=None):
     """Send an HTML invitation email."""
+    from_addr = sender_profile["gmail_address"] if sender_profile else GMAIL_ADDRESS
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = GMAIL_ADDRESS
+    msg["From"] = from_addr
     msg["To"] = to_email
 
     # Plain text fallback
@@ -39,15 +41,18 @@ def send_invitation(to_email, to_name, subject, html_content, photo_filename=Non
                 img.add_header("Content-Disposition", "inline", filename=photo_filename)
                 msg.attach(img)
 
-    server = _create_smtp()
+    if sender_profile:
+        server = _create_smtp(sender_profile["gmail_address"], sender_profile["gmail_password"])
+    else:
+        server = _create_smtp()
     try:
-        server.sendmail(GMAIL_ADDRESS, to_email, msg.as_string())
+        server.sendmail(from_addr, to_email, msg.as_string())
     finally:
         server.quit()
 
 
 def send_admin_notification(invitee_name, event_title, new_status, event_id):
-    """Send an RSVP notification to the admin."""
+    """Send an RSVP notification to the admin (always uses primary account)."""
     subject = f"RSVP Update: {invitee_name} - {event_title}"
 
     html = f"""
@@ -82,9 +87,11 @@ def send_admin_notification(invitee_name, event_title, new_status, event_id):
         print(f"Failed to send admin notification: {e}")
 
 
-def send_reminder_email(to_email, to_name, event, days_remaining, rsvp_url):
+def send_reminder_email(to_email, to_name, event, days_remaining, rsvp_url, sender_profile=None):
     """Send a reminder email for an upcoming event."""
     from app.utils.helpers import format_date, format_time
+
+    from_addr = sender_profile["gmail_address"] if sender_profile else GMAIL_ADDRESS
 
     title = event["title"]
     date = format_date(event["date"])
@@ -133,15 +140,18 @@ def send_reminder_email(to_email, to_name, event, days_remaining, rsvp_url):
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = GMAIL_ADDRESS
+    msg["From"] = from_addr
     msg["To"] = to_email
 
     msg.attach(MIMEText(plain, "plain"))
     msg.attach(MIMEText(html, "html"))
 
-    server = _create_smtp()
+    if sender_profile:
+        server = _create_smtp(sender_profile["gmail_address"], sender_profile["gmail_password"])
+    else:
+        server = _create_smtp()
     try:
-        server.sendmail(GMAIL_ADDRESS, to_email, msg.as_string())
+        server.sendmail(from_addr, to_email, msg.as_string())
     finally:
         server.quit()
 

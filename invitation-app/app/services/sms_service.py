@@ -4,8 +4,18 @@ from app.config import SMS_GATEWAY_URL, SMS_GATEWAY_LOGIN, SMS_GATEWAY_PASSWORD
 from app.utils.helpers import format_date, format_time
 
 
-def _ensure_configured():
-    if not SMS_GATEWAY_URL or not SMS_GATEWAY_LOGIN or not SMS_GATEWAY_PASSWORD:
+def _get_sms_credentials(sender_profile=None):
+    """Get SMS gateway credentials from sender profile or defaults."""
+    if sender_profile and sender_profile.get("sms_url"):
+        return sender_profile["sms_url"], sender_profile["sms_login"], sender_profile["sms_password"]
+    return SMS_GATEWAY_URL, SMS_GATEWAY_LOGIN, SMS_GATEWAY_PASSWORD
+
+
+def _ensure_configured(sms_url=None, sms_login=None, sms_password=None):
+    url = sms_url or SMS_GATEWAY_URL
+    login = sms_login or SMS_GATEWAY_LOGIN
+    password = sms_password or SMS_GATEWAY_PASSWORD
+    if not url or not login or not password:
         raise RuntimeError(
             "Android SMS Gateway is not configured. "
             "Set SMS_GATEWAY_URL, SMS_GATEWAY_LOGIN, and SMS_GATEWAY_PASSWORD in .env"
@@ -106,9 +116,10 @@ def format_reminder_sms(event, days_remaining, short_rsvp_url):
     return "\n".join(lines)
 
 
-def send_reminder_sms(to_phone, to_name, event, days_remaining, short_rsvp_url):
+def send_reminder_sms(to_phone, to_name, event, days_remaining, short_rsvp_url, sender_profile=None):
     """Send an SMS reminder via the Android SMS Gateway app."""
-    _ensure_configured()
+    sms_url, sms_login, sms_password = _get_sms_credentials(sender_profile)
+    _ensure_configured(sms_url, sms_login, sms_password)
 
     normalized = normalize_phone_number(to_phone)
     if not normalized:
@@ -121,28 +132,14 @@ def send_reminder_sms(to_phone, to_name, event, days_remaining, short_rsvp_url):
         text_message=domain.TextMessage(text=message_text),
     )
 
-    with client.APIClient(
-        SMS_GATEWAY_LOGIN,
-        SMS_GATEWAY_PASSWORD,
-        base_url=SMS_GATEWAY_URL,
-    ) as c:
+    with client.APIClient(sms_login, sms_password, base_url=sms_url) as c:
         c.send(message)
 
 
-def send_sms_invitation(to_phone, to_name, event, short_rsvp_url):
-    """Send an SMS invitation via the Android SMS Gateway app.
-
-    Args:
-        to_phone: Recipient phone number (any common format).
-        to_name: Recipient name (for logging).
-        event: Event dict.
-        short_rsvp_url: Short RSVP URL for SMS.
-
-    Raises:
-        ValueError: If the phone number is invalid.
-        RuntimeError: If the gateway is not configured.
-    """
-    _ensure_configured()
+def send_sms_invitation(to_phone, to_name, event, short_rsvp_url, sender_profile=None):
+    """Send an SMS invitation via the Android SMS Gateway app."""
+    sms_url, sms_login, sms_password = _get_sms_credentials(sender_profile)
+    _ensure_configured(sms_url, sms_login, sms_password)
 
     normalized = normalize_phone_number(to_phone)
     if not normalized:
@@ -155,9 +152,5 @@ def send_sms_invitation(to_phone, to_name, event, short_rsvp_url):
         text_message=domain.TextMessage(text=message_text),
     )
 
-    with client.APIClient(
-        SMS_GATEWAY_LOGIN,
-        SMS_GATEWAY_PASSWORD,
-        base_url=SMS_GATEWAY_URL,
-    ) as c:
+    with client.APIClient(sms_login, sms_password, base_url=sms_url) as c:
         c.send(message)

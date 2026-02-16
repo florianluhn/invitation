@@ -34,6 +34,39 @@ SMS_GATEWAY_URL = os.getenv("SMS_GATEWAY_URL", "")
 SMS_GATEWAY_LOGIN = os.getenv("SMS_GATEWAY_LOGIN", "")
 SMS_GATEWAY_PASSWORD = os.getenv("SMS_GATEWAY_PASSWORD", "")
 
+# Secondary sender credentials
+GMAIL_ADDRESS_2 = os.getenv("GMAIL_ADDRESS_2", "")
+GMAIL_APP_PASSWORD_2 = os.getenv("GMAIL_APP_PASSWORD_2", "")
+SMS_GATEWAY_URL_2 = os.getenv("SMS_GATEWAY_URL_2", "")
+SMS_GATEWAY_LOGIN_2 = os.getenv("SMS_GATEWAY_LOGIN_2", "")
+SMS_GATEWAY_PASSWORD_2 = os.getenv("SMS_GATEWAY_PASSWORD_2", "")
+
+# Sender profiles
+SENDER_PROFILES = {
+    "primary": {
+        "gmail_address": GMAIL_ADDRESS,
+        "gmail_password": GMAIL_APP_PASSWORD,
+        "sms_url": SMS_GATEWAY_URL,
+        "sms_login": SMS_GATEWAY_LOGIN,
+        "sms_password": SMS_GATEWAY_PASSWORD,
+    },
+}
+
+if GMAIL_ADDRESS_2 or SMS_GATEWAY_URL_2:
+    SENDER_PROFILES["secondary"] = {
+        "gmail_address": GMAIL_ADDRESS_2,
+        "gmail_password": GMAIL_APP_PASSWORD_2,
+        "sms_url": SMS_GATEWAY_URL_2,
+        "sms_login": SMS_GATEWAY_LOGIN_2,
+        "sms_password": SMS_GATEWAY_PASSWORD_2,
+    }
+
+
+def get_sender_profile(name="primary"):
+    """Get a sender profile by name, falling back to primary."""
+    return SENDER_PROFILES.get(name, SENDER_PROFILES["primary"])
+
+
 # Load app config from JSON
 def load_app_config():
     if CONFIG_FILE.exists():
