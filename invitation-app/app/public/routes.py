@@ -2,7 +2,7 @@ import time
 from collections import defaultdict
 from flask import Blueprint, render_template, request, redirect, url_for
 
-from app.config import INVITATION_TEMPLATES_DIR
+from app.config import INVITATION_TEMPLATES_DIR, get_sender_profile
 from app.services import event_service, email_service
 from app.utils.helpers import format_date, format_time
 
@@ -111,11 +111,13 @@ def rsvp_respond(token):
     # Only send admin notification if status actually changed
     if status != old_status:
         try:
+            profile = get_sender_profile(event.get("sender_profile", "primary"))
             email_service.send_admin_notification(
                 invitee_name=invitee["name"],
                 event_title=event["title"],
                 new_status=status,
                 event_id=event["id"],
+                sender_profile=profile,
             )
         except Exception:
             pass

@@ -51,8 +51,11 @@ def send_invitation(to_email, to_name, subject, html_content, photo_filename=Non
         server.quit()
 
 
-def send_admin_notification(invitee_name, event_title, new_status, event_id):
-    """Send an RSVP notification to the admin (always uses primary account)."""
+def send_admin_notification(invitee_name, event_title, new_status, event_id, sender_profile=None):
+    """Send an RSVP notification to the event's sender email."""
+    from_addr = sender_profile["gmail_address"] if sender_profile else GMAIL_ADDRESS
+    to_addr = sender_profile["gmail_address"] if sender_profile else ADMIN_EMAIL
+
     subject = f"RSVP Update: {invitee_name} - {event_title}"
 
     html = f"""
@@ -71,16 +74,19 @@ def send_admin_notification(invitee_name, event_title, new_status, event_id):
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = GMAIL_ADDRESS
-    msg["To"] = ADMIN_EMAIL
+    msg["From"] = from_addr
+    msg["To"] = to_addr
 
     msg.attach(MIMEText(f"{invitee_name} responded '{new_status}' to {event_title}", "plain"))
     msg.attach(MIMEText(html, "html"))
 
     try:
-        server = _create_smtp()
+        if sender_profile:
+            server = _create_smtp(sender_profile["gmail_address"], sender_profile["gmail_password"])
+        else:
+            server = _create_smtp()
         try:
-            server.sendmail(GMAIL_ADDRESS, ADMIN_EMAIL, msg.as_string())
+            server.sendmail(from_addr, to_addr, msg.as_string())
         finally:
             server.quit()
     except Exception as e:
