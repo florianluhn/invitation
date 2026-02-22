@@ -176,7 +176,13 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
     from app.utils.helpers import format_date, format_time
 
     location = event["location"] or ""
-    maps_url = f"https://www.google.com/maps/search/?api=1&query={quote(location)}" if location else ""
+    location_url = event.get("location_url", "")
+    if location_url:
+        maps_url = location_url
+    elif location:
+        maps_url = f"https://www.google.com/maps/search/?api=1&query={quote(location)}"
+    else:
+        maps_url = ""
 
     replacements = {
         "{{title}}": event["title"],

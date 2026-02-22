@@ -57,6 +57,11 @@
                 <input type="text" id="location" name="location" value="{{ event.location }}">
             </div>
             <div class="form-group">
+                <label for="location_url">Location Link (optional)</label>
+                <input type="url" id="location_url" name="location_url" value="{{ event.get('location_url', '') }}" placeholder="e.g. https://maps.app.goo.gl/...">
+                <small class="text-muted">Custom map or venue link. If empty, location text will link to a Google Maps search.</small>
+            </div>
+            <div class="form-group">
                 <label for="message">Message / Description</label>
                 <textarea id="message" name="message" rows="3">{{ event.message }}</textarea>
             </div>
