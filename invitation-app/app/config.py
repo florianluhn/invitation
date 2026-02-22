@@ -12,6 +12,7 @@ CONTACTS_FILE = DATA_DIR / "contacts.json"
 CONFIG_FILE = DATA_DIR / "config.json"
 UPLOADS_DIR = BASE_DIR / "uploads"
 INVITATION_TEMPLATES_DIR = BASE_DIR / "templates" / "invitations"
+TEMPLATE_IMAGES_DIR = BASE_DIR / "templates" / "images"
 
 # Ensure directories exist
 EVENTS_DIR.mkdir(parents=True, exist_ok=True)

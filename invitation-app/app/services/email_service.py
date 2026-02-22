@@ -189,6 +189,14 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
     for placeholder, value in replacements.items():
         html = html.replace(placeholder, value or "")
 
+    # Handle template images (e.g. background images): {{template_image:filename.png}}
+    for match in re.findall(r'\{\{template_image:([^}]+)\}\}', html):
+        if strip_wrapper:
+            url = f"/template-images/{match}"
+        else:
+            url = f"https://{PUBLIC_DOMAIN}/template-images/{match}"
+        html = html.replace(f"{{{{template_image:{match}}}}}", url)
+
     # Handle photo
     if event.get("photo"):
         src = photo_url if photo_url else "cid:event_photo"
