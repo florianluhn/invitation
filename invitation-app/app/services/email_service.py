@@ -197,6 +197,23 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
             url = f"https://{PUBLIC_DOMAIN}/template-images/{match}"
         html = html.replace(f"{{{{template_image:{match}}}}}", url)
 
+    # Handle show_host toggle
+    show_host = event.get("show_host", True)
+    if show_host:
+        html = html.replace("{{host_display}}", "table-row")
+        # For birthday_rainbow template: render the host row HTML
+        host_row_html = (
+            '<tr>\n'
+            '                      <td style="padding:6px 0 0;text-align:center;">\n'
+            f'                        <span style="color:#636e72;font-size:12px;">Hosted by {event.get("host", "")}</span>\n'
+            '                      </td>\n'
+            '                    </tr>'
+        )
+        html = html.replace("{{host_row}}", host_row_html)
+    else:
+        html = html.replace("{{host_display}}", "none")
+        html = html.replace("{{host_row}}", "")
+
     # Handle photo
     if event.get("photo"):
         src = photo_url if photo_url else "cid:event_photo"

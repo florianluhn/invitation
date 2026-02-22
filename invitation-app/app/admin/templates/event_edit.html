@@ -28,6 +28,9 @@
             <div class="form-group">
                 <label for="host">Host Name</label>
                 <input type="text" id="host" name="host" value="{{ event.host }}">
+                <label style="margin-top:6px;font-weight:normal;font-size:14px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                    <input type="checkbox" name="show_host" value="1" {% if event.get('show_host', true) %}checked{% endif %}> Show host name on invitation
+                </label>
             </div>
             {% if sender_profiles | length > 1 %}
             <div class="form-group">

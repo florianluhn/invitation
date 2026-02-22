@@ -43,7 +43,7 @@ def get_event(event_id):
     return _normalize_event(read_json(path))
 
 
-def create_event(title, host, date, time, location, message, template, photo=None, contacts=None, sender_profile="primary"):
+def create_event(title, host, date, time, location, message, template, photo=None, contacts=None, sender_profile="primary", show_host=True):
     event_id = generate_id()
     invitees = []
     if contacts:
@@ -73,6 +73,7 @@ def create_event(title, host, date, time, location, message, template, photo=Non
         "template": sanitize(template),
         "photo": photo,
         "sender_profile": sender_profile,
+        "show_host": show_host,
         "created_at": now_iso(),
         "invitees": invitees,
     }
@@ -100,6 +101,8 @@ def update_event(event_id, **kwargs):
         event["photo"] = kwargs["photo"]
     if "sender_profile" in kwargs:
         event["sender_profile"] = kwargs["sender_profile"]
+    if "show_host" in kwargs:
+        event["show_host"] = kwargs["show_host"]
     write_json(_event_path(event_id), event)
     return event
 

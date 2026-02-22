@@ -74,6 +74,7 @@ def create_event():
     message = request.form.get("message", "")
     template = request.form.get("template", "generic_party")
     sender_profile_name = request.form.get("sender_profile", "primary")
+    show_host = request.form.get("show_host") == "1"
     contact_ids = request.form.getlist("contacts")
 
     if not title or not date:
@@ -106,6 +107,7 @@ def create_event():
         location=location, message=message, template=template,
         photo=photo_filename, contacts=selected,
         sender_profile=sender_profile_name,
+        show_host=show_host,
     )
 
     flash(f"Event '{title}' created with {len(selected)} invitees.", "success")
@@ -140,6 +142,7 @@ def save_event(event_id):
         "message": request.form.get("message", ""),
         "template": request.form.get("template", event["template"]),
         "sender_profile": request.form.get("sender_profile", event.get("sender_profile", "primary")),
+        "show_host": request.form.get("show_host") == "1",
     }
 
     if not kwargs["title"] or not kwargs["date"]:
