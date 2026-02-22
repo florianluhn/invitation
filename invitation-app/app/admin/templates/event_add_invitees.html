@@ -30,11 +30,6 @@
                     {% for tag in c.get('tags', []) %}<span class="tag-badge">{{ tag }}</span>{% endfor %}
                     <small>{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</small>
                 </span>
-                <select name="send_method_{{ c.id }}" class="send-method-select small-select">
-                    <option value="email">Email</option>
-                    <option value="sms" {% if not c.phone %}disabled{% endif %}>SMS{% if not c.phone %} (no phone){% endif %}</option>
-                    <option value="both" {% if not c.phone %}disabled{% endif %}>Both{% if not c.phone %} (no phone){% endif %}</option>
-                </select>
             </label>
             {% endfor %}
             {% else %}

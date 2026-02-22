@@ -90,18 +90,9 @@ def create_event():
             photo_filename = secure_filename(file.filename)
             file.save(UPLOADS_DIR / photo_filename)
 
-    # Get selected contacts with their send method preference
+    # Get selected contacts
     all_contacts = contact_service.get_all_contacts()
-    selected = []
-    for c in all_contacts:
-        if c["id"] in contact_ids:
-            send_method = request.form.get(f"send_method_{c['id']}", "email")
-            # If no phone number, force email
-            if not c.get("phone") and send_method in ("sms", "both"):
-                send_method = "email"
-            contact_with_method = c.copy()
-            contact_with_method["send_method"] = send_method
-            selected.append(contact_with_method)
+    selected = [c for c in all_contacts if c["id"] in contact_ids]
 
     event = event_service.create_event(
         title=title, host=host, date=date, time=time,
@@ -192,15 +183,7 @@ def save_invitees(event_id):
 
     contact_ids = request.form.getlist("contacts")
     all_contacts = contact_service.get_all_contacts()
-    selected = []
-    for c in all_contacts:
-        if c["id"] in contact_ids:
-            send_method = request.form.get(f"send_method_{c['id']}", "email")
-            if not c.get("phone") and send_method in ("sms", "both"):
-                send_method = "email"
-            contact_with_method = c.copy()
-            contact_with_method["send_method"] = send_method
-            selected.append(contact_with_method)
+    selected = [c for c in all_contacts if c["id"] in contact_ids]
 
     if selected:
         event_service.add_invitees(event_id, selected)
@@ -261,13 +244,13 @@ def send_invitations(event_id):
         should_email = False
         should_sms = False
 
-        if force_email:
+        if force_email and inv.get("email"):
             should_email = True
         elif force_sms:
             should_sms = True
         else:
             # Normal send: respect send_method, skip already-sent
-            if send_method in ("email", "both") and not inv.get("email_sent_at"):
+            if send_method in ("email", "both") and not inv.get("email_sent_at") and inv.get("email"):
                 if not sms_only:
                     should_email = True
             if send_method in ("sms", "both") and not inv.get("sms_sent_at") and inv.get("phone"):

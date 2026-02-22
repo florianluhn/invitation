@@ -92,8 +92,6 @@ function selectByTag(tag) {
         if (tags.includes(tag)) {
             const cb = el.querySelector('input[type="checkbox"]');
             cb.checked = true;
-            var select = el.querySelector('.send-method-select');
-            if (select) select.style.display = 'inline-block';
         }
     });
     updateSelectedCount();
@@ -117,15 +115,5 @@ function updateSelectedCount() {
 document.querySelectorAll('.contact-checkbox input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', function () {
         updateSelectedCount();
-        // Show/hide the send method dropdown
-        const select = this.closest('.contact-checkbox').querySelector('.send-method-select');
-        if (select) {
-            select.style.display = this.checked ? 'inline-block' : 'none';
-        }
     });
-});
-
-// Hide all send method dropdowns initially
-document.querySelectorAll('.send-method-select').forEach(sel => {
-    sel.style.display = 'none';
 });

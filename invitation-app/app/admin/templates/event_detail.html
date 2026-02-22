@@ -53,44 +53,38 @@
 <div class="section">
     <h2>Send Invitations</h2>
     {% set unsent_email = [] %}
-    {% set unsent_sms = [] %}
+    {% set all_with_email = [] %}
     {% set all_with_phone = [] %}
     {% for inv in event.invitees %}
-        {% if inv.send_method in ['email', 'both'] and not inv.email_sent_at %}
+        {% if inv.email and not inv.email_sent_at %}
             {% if unsent_email.append(inv) %}{% endif %}
         {% endif %}
-        {% if inv.send_method in ['sms', 'both'] and not inv.sms_sent_at and inv.phone %}
-            {% if unsent_sms.append(inv) %}{% endif %}
+        {% if inv.email %}
+            {% if all_with_email.append(inv) %}{% endif %}
         {% endif %}
         {% if inv.phone %}
             {% if all_with_phone.append(inv) %}{% endif %}
         {% endif %}
     {% endfor %}
-    {% if unsent_email or unsent_sms %}
     <div class="send-buttons">
         {% if unsent_email %}
-        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
-            <input type="hidden" name="email_only" value="true">
+        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send email invitation to {{ unsent_email | length }} invitee(s)?');">
+            <input type="hidden" name="force_email" value="true">
+            {% for inv in unsent_email %}
+            <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
+            {% endfor %}
             <button type="submit" class="btn btn-primary">Send {{ unsent_email | length }} Email(s)</button>
         </form>
         {% endif %}
-        {% if unsent_sms %}
-        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
-            <input type="hidden" name="sms_only" value="true">
-            <button type="submit" class="btn btn-primary">Send {{ unsent_sms | length }} SMS</button>
+        {% if all_with_phone %}
+        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send SMS invitation to all {{ all_with_phone | length }} invitee(s) with a phone number?');">
+            <input type="hidden" name="force_sms" value="true">
+            <button type="submit" class="btn btn-primary">Send All via SMS ({{ all_with_phone | length }})</button>
         </form>
         {% endif %}
     </div>
-    {% else %}
+    {% if not unsent_email and not all_with_phone %}
     <p class="text-muted">All invitations have been sent.</p>
-    {% endif %}
-    {% if all_with_phone %}
-    <div class="send-buttons" style="margin-top:10px;">
-        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send SMS invitation to all {{ all_with_phone | length }} invitee(s) with a phone number?');">
-            <input type="hidden" name="force_sms" value="true">
-            <button type="submit" class="btn btn-secondary">Send All via SMS ({{ all_with_phone | length }})</button>
-        </form>
-    </div>
     {% endif %}
 </div>
 
@@ -140,7 +134,6 @@
             <tr>
                 <th>Name</th>
                 <th>Contact</th>
-                <th>Method</th>
                 <th>Status</th>
                 <th>Responded</th>
                 <th>Email Sent</th>
@@ -156,7 +149,6 @@
                     <small>{{ inv.email }}</small>
                     {% if inv.phone %}<br><small>{{ inv.phone }}</small>{% endif %}
                 </td>
-                <td><span class="method-badge">{{ inv.send_method or 'email' }}</span></td>
                 <td>
                     <span class="status-badge status-{{ inv.status }}">{{ inv.status | title }}</span>
                 </td>
@@ -189,11 +181,13 @@
                         <button type="submit" class="btn btn-small">Set</button>
                     </form>
                     <!-- Resend Email -->
+                    {% if inv.email %}
                     <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
                         <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
                         <input type="hidden" name="force_email" value="true">
                         <button type="submit" class="btn btn-small btn-secondary">Resend Email</button>
                     </form>
+                    {% endif %}
                     <!-- Resend SMS -->
                     {% if inv.phone %}
                     <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
