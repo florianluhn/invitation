@@ -54,12 +54,16 @@
     <h2>Send Invitations</h2>
     {% set unsent_email = [] %}
     {% set unsent_sms = [] %}
+    {% set all_with_phone = [] %}
     {% for inv in event.invitees %}
         {% if inv.send_method in ['email', 'both'] and not inv.email_sent_at %}
             {% if unsent_email.append(inv) %}{% endif %}
         {% endif %}
         {% if inv.send_method in ['sms', 'both'] and not inv.sms_sent_at and inv.phone %}
             {% if unsent_sms.append(inv) %}{% endif %}
+        {% endif %}
+        {% if inv.phone %}
+            {% if all_with_phone.append(inv) %}{% endif %}
         {% endif %}
     {% endfor %}
     {% if unsent_email or unsent_sms %}
@@ -79,6 +83,14 @@
     </div>
     {% else %}
     <p class="text-muted">All invitations have been sent.</p>
+    {% endif %}
+    {% if all_with_phone %}
+    <div class="send-buttons" style="margin-top:10px;">
+        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send SMS invitation to all {{ all_with_phone | length }} invitee(s) with a phone number?');">
+            <input type="hidden" name="force_sms" value="true">
+            <button type="submit" class="btn btn-secondary">Send All via SMS ({{ all_with_phone | length }})</button>
+        </form>
+    </div>
     {% endif %}
 </div>
 

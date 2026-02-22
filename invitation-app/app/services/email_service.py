@@ -172,14 +172,19 @@ def render_invitation_email(template_html, event, invitee, rsvp_url, photo_url=N
                        in a web page, and extracts the body background style.
     """
     import re
+    from urllib.parse import quote
     from app.utils.helpers import format_date, format_time
+
+    location = event["location"] or ""
+    maps_url = f"https://www.google.com/maps/search/?api=1&query={quote(location)}" if location else ""
 
     replacements = {
         "{{title}}": event["title"],
         "{{host}}": event["host"],
         "{{date}}": format_date(event["date"]),
         "{{time}}": format_time(event["time"]),
-        "{{location}}": event["location"],
+        "{{location}}": location,
+        "{{maps_url}}": maps_url,
         "{{message}}": event["message"],
         "{{guest_name}}": invitee["name"],
         "{{rsvp_url}}": rsvp_url,
