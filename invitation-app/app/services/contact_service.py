@@ -29,10 +29,11 @@ def _parse_tags(tags_input):
 
 
 def add_contact(name, email, phone="", tags=None):
+    clean_email = sanitize(email).lower() if email else ""
     contact = {
         "id": generate_id(),
         "name": sanitize(name),
-        "email": sanitize(email).lower(),
+        "email": clean_email,
         "phone": sanitize(phone),
         "tags": _parse_tags(tags),
         "created_at": now_iso(),
@@ -47,7 +48,7 @@ def update_contact(contact_id, name, email, phone="", tags=None):
         for c in contacts:
             if c["id"] == contact_id:
                 c["name"] = sanitize(name)
-                c["email"] = sanitize(email).lower()
+                c["email"] = sanitize(email).lower() if email else ""
                 c["phone"] = sanitize(phone)
                 c["tags"] = _parse_tags(tags)
                 return c
@@ -73,10 +74,10 @@ def import_contacts_csv(csv_content):
             name = row.get("name", "").strip()
             email = row.get("email", "").strip().lower()
             phone = row.get("phone", "").strip()
-            if not name or not email:
+            if not name or (not email and not phone):
                 skipped += 1
                 continue
-            if email in existing_emails:
+            if email and email in existing_emails:
                 skipped += 1
                 continue
             tags_str = row.get("tags", "").strip()
@@ -88,7 +89,8 @@ def import_contacts_csv(csv_content):
                 "tags": _parse_tags(tags_str),
                 "created_at": now_iso(),
             })
-            existing_emails.add(email)
+            if email:
+                existing_emails.add(email)
             added += 1
 
     return added, skipped
@@ -99,7 +101,8 @@ def search_contacts(query):
     contacts = get_all_contacts()
     return [c for c in contacts if
             query in c["name"].lower() or
-            query in c["email"].lower() or
+            query in c.get("email", "").lower() or
+            query in c.get("phone", "").lower() or
             any(query in t.lower() for t in c.get("tags", []))]
 
 

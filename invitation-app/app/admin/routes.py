@@ -420,8 +420,10 @@ def add_contact():
     email_addr = request.form.get("email", "")
     phone = request.form.get("phone", "")
     tags = request.form.get("tags", "")
-    if not name or not email_addr:
-        flash("Name and email are required.", "error")
+    if not name:
+        flash("Name is required.", "error")
+    elif not email_addr and not phone:
+        flash("At least an email or phone number is required.", "error")
     else:
         contact_service.add_contact(name, email_addr, phone, tags)
         flash(f"Contact '{name}' added.", "success")

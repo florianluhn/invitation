@@ -16,13 +16,14 @@
                 <input type="text" id="name" name="name" required>
             </div>
             <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
             </div>
             <div class="form-group">
                 <label for="phone">Phone</label>
                 <input type="text" id="phone" name="phone">
             </div>
+            <small class="text-muted">At least email or phone is required.</small>
             <div class="form-group">
                 <label for="tags">Tags</label>
                 <input type="text" id="tags" name="tags" placeholder="Family, VIP, Work...">
@@ -100,7 +101,7 @@
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" id="editEmail" required>
+                <input type="email" name="email" id="editEmail">
             </div>
             <div class="form-group">
                 <label>Phone</label>
@@ -121,6 +122,21 @@
 
 {% block scripts %}
 <script>
+function validateContactForm(form) {
+    var email = form.querySelector('[name="email"]').value.trim();
+    var phone = form.querySelector('[name="phone"]').value.trim();
+    if (!email && !phone) {
+        alert('Please provide at least an email or phone number.');
+        return false;
+    }
+    return true;
+}
+document.querySelector('.sidebar-panel form').addEventListener('submit', function(e) {
+    if (!validateContactForm(this)) e.preventDefault();
+});
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    if (!validateContactForm(this)) e.preventDefault();
+});
 function editContact(id, name, email, phone, tags) {
     document.getElementById('editName').value = name;
     document.getElementById('editEmail').value = email;
