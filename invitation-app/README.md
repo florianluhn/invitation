@@ -41,7 +41,7 @@ SECRET_KEY=some-random-string-here
 1. Go to [Google Account Security](https://myaccount.google.com/security)
 2. Enable 2-Step Verification if not already on
 3. Go to [App Passwords](https://myaccount.google.com/apppasswords)
-4. Create a new app password for "Mail"
+4. Create a new app password for "Mail"git p
 5. Copy the 16-character password into `.env`
 
 ### 3. Run
