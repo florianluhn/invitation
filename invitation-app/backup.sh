@@ -10,22 +10,16 @@ set -e
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$APP_DIR"
 
-# Load settings from .env (line-by-line to avoid $ expansion)
-if [ -f .env ]; then
-    while IFS='=' read -r key value; do
-        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
-        value="${value%\"}"
-        value="${value#\"}"
-        export "$key=$value"
-    done < .env
-fi
+# Load backup settings from .env using grep (avoids shell expansion issues)
+get_env() { grep -s "^$1=" .env | head -1 | cut -d'=' -f2-; }
 
-NAS_HOST="${BACKUP_NAS_HOST:-}"
-NAS_USER="${BACKUP_NAS_USER:-}"
-NAS_PASSWORD="${BACKUP_NAS_PASSWORD:-}"
-NAS_SHARE="${BACKUP_NAS_SHARE:-}"
-NAS_FOLDER="${BACKUP_NAS_FOLDER:-}"
-KEEP_DAYS="${BACKUP_KEEP_DAYS:-30}"
+NAS_HOST="$(get_env BACKUP_NAS_HOST)"
+NAS_USER="$(get_env BACKUP_NAS_USER)"
+NAS_PASSWORD="$(get_env BACKUP_NAS_PASSWORD)"
+NAS_SHARE="$(get_env BACKUP_NAS_SHARE)"
+NAS_FOLDER="$(get_env BACKUP_NAS_FOLDER)"
+KEEP_DAYS="$(get_env BACKUP_KEEP_DAYS)"
+KEEP_DAYS="${KEEP_DAYS:-30}"
 
 if [ -z "$NAS_HOST" ] || [ -z "$NAS_USER" ] || [ -z "$NAS_PASSWORD" ] || [ -z "$NAS_SHARE" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR: Backup settings not configured in .env"
