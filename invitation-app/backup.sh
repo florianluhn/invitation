@@ -10,9 +10,16 @@ set -e
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$APP_DIR"
 
-# Load settings from .env
+# Load settings from .env (using set -a to avoid variable expansion issues with $ in values)
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
+    set -a
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        value="${value%\"}"
+        value="${value#\"}"
+        export "$key=$value"
+    done < .env
+    set +a
 fi
 
 NAS_HOST="${BACKUP_NAS_HOST:-}"
