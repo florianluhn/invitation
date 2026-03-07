@@ -1,4 +1,5 @@
 import os
+import subprocess
 from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
@@ -448,6 +449,30 @@ def import_contacts():
     added, skipped = contact_service.import_contacts_csv(csv_content)
     flash(f"Imported {added} contact(s), skipped {skipped}.", "success")
     return redirect(url_for("admin.contacts"))
+
+
+# --- Backup ---
+
+@admin_bp.route("/backup", methods=["POST"])
+def run_backup():
+    script = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "backup.sh")
+    if not os.path.exists(script):
+        flash("Backup script not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+    try:
+        result = subprocess.run(
+            ["bash", script],
+            capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode == 0:
+            flash("Backup completed successfully.", "success")
+        else:
+            flash(f"Backup failed: {result.stderr or result.stdout}", "error")
+    except subprocess.TimeoutExpired:
+        flash("Backup timed out after 5 minutes.", "error")
+    except Exception as e:
+        flash(f"Backup error: {e}", "error")
+    return redirect(url_for("admin.dashboard"))
 
 
 # --- API: Template Preview ---

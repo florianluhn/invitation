@@ -4,7 +4,12 @@
 {% block content %}
 <div class="page-header">
     <h1>Events Dashboard</h1>
-    <a href="{{ url_for('admin.new_event') }}" class="btn btn-primary">+ New Event</a>
+    <div>
+        <a href="{{ url_for('admin.new_event') }}" class="btn btn-primary">+ New Event</a>
+        <form method="POST" action="{{ url_for('admin.run_backup') }}" class="inline-form" onsubmit="return confirm('Run backup to NAS now?');">
+            <button type="submit" class="btn">Backup to NAS</button>
+        </form>
+    </div>
 </div>
 
 {% if events %}
