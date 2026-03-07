@@ -25,9 +25,7 @@ if [ ! -f data/config.json ]; then
     cat > data/config.json << 'CONF'
 {
   "app_name": "Party Invitations",
-  "public_domain": "invites.yourdomain.com",
-  "admin_port": 5001,
-  "public_port": 8080
+  "public_domain": "invites.yourdomain.com"
 }
 CONF
 fi
@@ -91,8 +89,8 @@ EOF
     echo "  Services installed and started."
 else
     echo "  Skipped. You can run the servers manually:"
-    echo "    python admin_server.py    (default port 5001, configurable in .env)"
-    echo "    python public_server.py   (port 8080)"
+    echo "    python admin_server.py"
+    echo "    python public_server.py"
 fi
 
 # 5. Cloudflare Tunnel hint
@@ -105,9 +103,15 @@ echo "  4. Configure: see README.md for config.yml setup"
 echo "  5. Run: cloudflared tunnel run invitations"
 echo ""
 
+# Read ports from .env
+ADMIN_PORT=$(grep -s '^ADMIN_PORT=' .env | cut -d'=' -f2 || echo "5001")
+PUBLIC_PORT=$(grep -s '^PUBLIC_PORT=' .env | cut -d'=' -f2 || echo "8080")
+ADMIN_PORT=${ADMIN_PORT:-5001}
+PUBLIC_PORT=${PUBLIC_PORT:-8080}
+
 echo "=== Setup Complete ==="
 echo ""
-echo "Admin dashboard: http://localhost:5001"
-echo "Public RSVP:     http://localhost:8080"
+echo "Admin dashboard: http://localhost:${ADMIN_PORT}"
+echo "Public RSVP:     http://localhost:${PUBLIC_PORT}"
 echo ""
 echo "IMPORTANT: Edit .env with your Gmail credentials before sending invitations."
