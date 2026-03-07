@@ -38,17 +38,17 @@ BACKUP_NAME="invitation-app_${TIMESTAMP}"
 REMOTE_DIR="${NAS_PATH}/invitation-app"
 REMOTE_BACKUP="${REMOTE_DIR}/${BACKUP_NAME}"
 
-SSH_CMD="sshpass -p '${NAS_PASSWORD}' ssh -o StrictHostKeyChecking=no"
-RSYNC_SSH="sshpass -p '${NAS_PASSWORD}' ssh -o StrictHostKeyChecking=no"
+export SSHPASS="${NAS_PASSWORD}"
+SSH_OPTS="-o StrictHostKeyChecking=no"
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Starting backup to ${NAS_USER}@${NAS_HOST}:${REMOTE_BACKUP}"
 
 # Create remote backup directory
-sshpass -p "${NAS_PASSWORD}" ssh -o StrictHostKeyChecking=no "${NAS_USER}@${NAS_HOST}" "mkdir -p '${REMOTE_BACKUP}'"
+sshpass -e ssh ${SSH_OPTS} "${NAS_USER}@${NAS_HOST}" "mkdir -p '${REMOTE_BACKUP}'"
 
 # Rsync the entire app folder, excluding unnecessary files
-sshpass -p "${NAS_PASSWORD}" rsync -az --delete \
-    -e "ssh -o StrictHostKeyChecking=no" \
+rsync -az --delete \
+    -e "sshpass -e ssh ${SSH_OPTS}" \
     --exclude='venv/' \
     --exclude='__pycache__/' \
     --exclude='*.pyc' \
@@ -61,6 +61,6 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') Backup complete: ${REMOTE_BACKUP}"
 # Clean up old backups
 if [ "$KEEP_DAYS" -gt 0 ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') Cleaning up backups older than ${KEEP_DAYS} days..."
-    sshpass -p "${NAS_PASSWORD}" ssh -o StrictHostKeyChecking=no "${NAS_USER}@${NAS_HOST}" "find '${REMOTE_DIR}' -maxdepth 1 -name 'invitation-app_*' -type d -mtime +${KEEP_DAYS} -exec rm -rf {} +"
+    sshpass -e ssh ${SSH_OPTS} "${NAS_USER}@${NAS_HOST}" "find '${REMOTE_DIR}' -maxdepth 1 -name 'invitation-app_*' -type d -mtime +${KEEP_DAYS} -exec rm -rf {} +"
     echo "$(date '+%Y-%m-%d %H:%M:%S') Cleanup done."
 fi
