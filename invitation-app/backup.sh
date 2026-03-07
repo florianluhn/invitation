@@ -1,7 +1,7 @@
 #!/bin/bash
 # Backup script for Invitation App
-# Copies the entire app folder to a remote NAS/server via rsync
-# Requires sshpass: sudo apt install sshpass
+# Copies the entire app folder to a Synology NAS via SMB/CIFS mount
+# Requires cifs-utils: sudo apt install cifs-utils
 # Can be run manually or via cron (e.g. daily at 2am):
 #   0 2 * * * /path/to/invitation-app/backup.sh >> /path/to/invitation-app/backup.log 2>&1
 
@@ -10,64 +10,71 @@ set -e
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$APP_DIR"
 
-# Load settings from .env (using set -a to avoid variable expansion issues with $ in values)
+# Load settings from .env (line-by-line to avoid $ expansion)
 if [ -f .env ]; then
-    set -a
     while IFS='=' read -r key value; do
         [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
         value="${value%\"}"
         value="${value#\"}"
         export "$key=$value"
     done < .env
-    set +a
 fi
 
 NAS_HOST="${BACKUP_NAS_HOST:-}"
 NAS_USER="${BACKUP_NAS_USER:-}"
 NAS_PASSWORD="${BACKUP_NAS_PASSWORD:-}"
-NAS_PATH="${BACKUP_NAS_PATH:-}"
+NAS_SHARE="${BACKUP_NAS_SHARE:-}"
+NAS_FOLDER="${BACKUP_NAS_FOLDER:-}"
 KEEP_DAYS="${BACKUP_KEEP_DAYS:-30}"
 
-if [ -z "$NAS_HOST" ] || [ -z "$NAS_USER" ] || [ -z "$NAS_PASSWORD" ] || [ -z "$NAS_PATH" ]; then
+if [ -z "$NAS_HOST" ] || [ -z "$NAS_USER" ] || [ -z "$NAS_PASSWORD" ] || [ -z "$NAS_SHARE" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR: Backup settings not configured in .env"
-    echo "  Required: BACKUP_NAS_HOST, BACKUP_NAS_USER, BACKUP_NAS_PASSWORD, BACKUP_NAS_PATH"
+    echo "  Required: BACKUP_NAS_HOST, BACKUP_NAS_USER, BACKUP_NAS_PASSWORD, BACKUP_NAS_SHARE"
     exit 1
 fi
 
-# Check sshpass is installed
-if ! command -v sshpass &> /dev/null; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR: sshpass not installed. Run: sudo apt install sshpass"
-    exit 1
-fi
-
+MOUNT_POINT="/mnt/nas_backup"
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')
 BACKUP_NAME="invitation-app_${TIMESTAMP}"
-REMOTE_DIR="${NAS_PATH}/invitation-app"
-REMOTE_BACKUP="${REMOTE_DIR}/${BACKUP_NAME}"
 
-export SSHPASS="${NAS_PASSWORD}"
-SSH_OPTS="-o StrictHostKeyChecking=no"
+echo "$(date '+%Y-%m-%d %H:%M:%S') Starting backup to //${NAS_HOST}/${NAS_SHARE}/${NAS_FOLDER}/${BACKUP_NAME}"
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') Starting backup to ${NAS_USER}@${NAS_HOST}:${REMOTE_BACKUP}"
+# Create mount point
+sudo mkdir -p "$MOUNT_POINT"
 
-# Create remote backup directory
-sshpass -e ssh ${SSH_OPTS} "${NAS_USER}@${NAS_HOST}" "mkdir -p '${REMOTE_BACKUP}'"
+# Mount NAS share via SMB/CIFS
+UID_VAL=$(id -u)
+GID_VAL=$(id -g)
+sudo mount -t cifs "//${NAS_HOST}/${NAS_SHARE}" "$MOUNT_POINT" \
+    -o "username=${NAS_USER},password=${NAS_PASSWORD},uid=${UID_VAL},gid=${GID_VAL},file_mode=0777,dir_mode=0777,forceuid,forcegid"
 
-# Rsync the entire app folder, excluding unnecessary files
-rsync -az --delete \
-    -e "sshpass -e ssh ${SSH_OPTS}" \
+echo "$(date '+%Y-%m-%d %H:%M:%S') NAS mounted successfully"
+
+# Ensure cleanup on exit
+cleanup() {
+    sudo umount "$MOUNT_POINT" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+# Create destination folder
+DEST_DIR="${MOUNT_POINT}/${NAS_FOLDER}"
+DEST_PATH="${DEST_DIR}/${BACKUP_NAME}"
+mkdir -p "$DEST_DIR"
+
+# Copy app folder, excluding unnecessary files
+rsync -a \
     --exclude='venv/' \
     --exclude='__pycache__/' \
     --exclude='*.pyc' \
     --exclude='.claude/' \
     --exclude='backup.log' \
-    "$APP_DIR/" "${NAS_USER}@${NAS_HOST}:${REMOTE_BACKUP}/"
+    "$APP_DIR/" "$DEST_PATH/"
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') Backup complete: ${REMOTE_BACKUP}"
+echo "$(date '+%Y-%m-%d %H:%M:%S') Backup complete: ${DEST_PATH}"
 
 # Clean up old backups
 if [ "$KEEP_DAYS" -gt 0 ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') Cleaning up backups older than ${KEEP_DAYS} days..."
-    sshpass -e ssh ${SSH_OPTS} "${NAS_USER}@${NAS_HOST}" "find '${REMOTE_DIR}' -maxdepth 1 -name 'invitation-app_*' -type d -mtime +${KEEP_DAYS} -exec rm -rf {} +"
+    find "$DEST_DIR" -maxdepth 1 -name 'invitation-app_*' -type d -mtime +${KEEP_DAYS} -exec rm -rf {} +
     echo "$(date '+%Y-%m-%d %H:%M:%S') Cleanup done."
 fi
