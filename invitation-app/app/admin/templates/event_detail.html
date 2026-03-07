@@ -75,6 +75,9 @@
         {% if unsent_sms %}
         <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send SMS invitation to {{ unsent_sms | length }} invitee(s)?');">
             <input type="hidden" name="force_sms" value="true">
+            {% for inv in unsent_sms %}
+            <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
+            {% endfor %}
             <button type="submit" class="btn btn-primary">Send {{ unsent_sms | length }} SMS</button>
         </form>
         {% endif %}
