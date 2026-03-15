@@ -6,7 +6,6 @@ invitation-app/data/events/*.json
 invitation-app/uploads/*
 invitation-app/!uploads/.gitkeep
 .claude/
-invitation-app/data/contacts.json
 .env
 venv/
 __pycache__/
