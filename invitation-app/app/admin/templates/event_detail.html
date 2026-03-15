@@ -73,8 +73,8 @@
         </form>
         {% endif %}
         {% if unsent_sms %}
-        <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send SMS invitation to {{ unsent_sms | length }} invitee(s)?');">
-            <input type="hidden" name="force_sms" value="true">
+        <form method="POST" action="{{ url_for('admin.sms_preview', event_id=event.id) }}" class="inline-form">
+            <input type="hidden" name="sms_type" value="invitation">
             {% for inv in unsent_sms %}
             <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
             {% endfor %}
@@ -111,8 +111,11 @@
         </form>
         {% endif %}
         {% if sms_eligible %}
-        <form method="POST" action="{{ url_for('admin.send_reminders', event_id=event.id) }}" class="inline-form" onsubmit="return confirm('Send reminder SMS to {{ sms_eligible | length }} invitee(s)?');">
-            <input type="hidden" name="method" value="sms">
+        <form method="POST" action="{{ url_for('admin.sms_preview', event_id=event.id) }}" class="inline-form">
+            <input type="hidden" name="sms_type" value="reminder">
+            {% for inv in sms_eligible %}
+            <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
+            {% endfor %}
             <button type="submit" class="btn btn-primary">Send Reminder SMS to All ({{ sms_eligible | length }})</button>
         </form>
         {% endif %}
@@ -189,9 +192,9 @@
                     {% endif %}
                     <!-- Resend SMS -->
                     {% if inv.phone %}
-                    <form method="POST" action="{{ url_for('admin.send_invitations', event_id=event.id) }}" class="inline-form">
+                    <form method="POST" action="{{ url_for('admin.sms_preview', event_id=event.id) }}" class="inline-form">
+                        <input type="hidden" name="sms_type" value="invitation">
                         <input type="hidden" name="contact_ids" value="{{ inv.contact_id }}">
-                        <input type="hidden" name="force_sms" value="true">
                         <button type="submit" class="btn btn-small btn-secondary">Resend SMS</button>
                     </form>
                     {% endif %}

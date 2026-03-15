@@ -158,6 +158,14 @@ a:hover { text-decoration: underline; }
 .method-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #e2e3e5; color: #383d41; }
 .sent-check { color: #28a745; font-weight: bold; font-size: 16px; }
 
+/* SMS Preview */
+.sms-preview-card { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.sms-preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sms-preview-header small { color: #888; }
+.sms-textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical; }
+.char-count { display: block; margin-top: 4px; font-size: 12px; color: #888; }
+.test-sms-form { max-width: 500px; }
+
 /* Responsive */
 @media (max-width: 768px) {
     .event-editor { flex-direction: column; }

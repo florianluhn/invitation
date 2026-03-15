@@ -136,6 +136,24 @@ def send_reminder_sms(to_phone, to_name, event, days_remaining, short_rsvp_url, 
         c.send(message)
 
 
+def send_raw_sms(to_phone, message_text, sender_profile=None):
+    """Send a raw SMS message with custom text."""
+    sms_url, sms_login, sms_password = _get_sms_credentials(sender_profile)
+    _ensure_configured(sms_url, sms_login, sms_password)
+
+    normalized = normalize_phone_number(to_phone)
+    if not normalized:
+        raise ValueError(f"Invalid phone number: {to_phone}")
+
+    message = domain.Message(
+        phone_numbers=[normalized],
+        text_message=domain.TextMessage(text=message_text),
+    )
+
+    with client.APIClient(sms_login, sms_password, base_url=sms_url) as c:
+        c.send(message)
+
+
 def send_sms_invitation(to_phone, to_name, event, short_rsvp_url, sender_profile=None):
     """Send an SMS invitation via the Android SMS Gateway app."""
     sms_url, sms_login, sms_password = _get_sms_credentials(sender_profile)

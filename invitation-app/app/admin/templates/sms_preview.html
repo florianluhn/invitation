@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}SMS Preview - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ "Reminder" if is_reminder else "Invitation" }} SMS Preview</h1>
+    <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">&larr; Back to Event</a>
+</div>
+
+<p class="text-muted" style="margin-bottom: 20px;">
+    Review and edit each SMS message before sending. {{ messages | length }} recipient(s).
+</p>
+
+<form method="POST" action="{{ url_for('admin.send_sms_custom', event_id=event.id) }}">
+    <input type="hidden" name="sms_type" value="{{ 'reminder' if is_reminder else 'invitation' }}">
+
+    {% for item in messages %}
+    <div class="sms-preview-card">
+        <div class="sms-preview-header">
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.phone }}</small>
+        </div>
+        <input type="hidden" name="contact_id" value="{{ item.contact_id }}">
+        <input type="hidden" name="phone_{{ item.contact_id }}" value="{{ item.phone }}">
+        <div class="form-group" style="margin-bottom: 0;">
+            <textarea name="message_{{ item.contact_id }}" rows="4" class="sms-textarea">{{ item.message }}</textarea>
+            <small class="char-count" data-target="message_{{ item.contact_id }}"></small>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="form-actions" style="margin-top: 20px;">
+        <button type="submit" class="btn btn-primary btn-large">Send {{ messages | length }} SMS</button>
+        <a href="{{ url_for('admin.event_detail', event_id=event.id) }}" class="btn">Cancel</a>
+    </div>
+</form>
+
+<!-- Test SMS -->
+<div class="section" style="margin-top: 40px; padding-top: 24px; border-top: 2px solid #eee;">
+    <h2>Test SMS</h2>
+    <p class="text-muted">Send a test {{ "reminder" if is_reminder else "invitation" }} SMS to any phone number.</p>
+    <form method="POST" action="{{ url_for('admin.send_test_sms', event_id=event.id) }}" class="test-sms-form">
+        <input type="hidden" name="sms_type" value="{{ 'reminder' if is_reminder else 'invitation' }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" name="test_phone" placeholder="+49 170 1234567" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea name="test_message" rows="4" class="sms-textarea">{{ test_message }}</textarea>
+            <small class="char-count" data-target="test_message"></small>
+        </div>
+        <button type="submit" class="btn btn-primary">Send Test SMS</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Character counter for SMS textareas
+document.querySelectorAll('.sms-textarea').forEach(function(textarea) {
+    var counter = textarea.parentElement.querySelector('.char-count');
+    if (!counter) return;
+    function update() {
+        var len = textarea.value.length;
+        var segments = len <= 160 ? 1 : Math.ceil(len / 153);
+        counter.textContent = len + ' chars (' + segments + ' SMS segment' + (segments > 1 ? 's' : '') + ')';
+        counter.style.color = segments > 1 ? '#dc3545' : '#888';
+    }
+    textarea.addEventListener('input', update);
+    update();
+});
+</script>
+{% endblock %}

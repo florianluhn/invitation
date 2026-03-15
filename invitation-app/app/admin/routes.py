@@ -451,6 +451,131 @@ def import_contacts():
     return redirect(url_for("admin.contacts"))
 
 
+# --- SMS Preview & Custom Send ---
+
+@admin_bp.route("/events/<event_id>/sms-preview", methods=["POST"])
+def sms_preview(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    sms_type = request.form.get("sms_type", "invitation")
+    contact_ids = request.form.getlist("contact_ids")
+    is_reminder = sms_type == "reminder"
+
+    # Calculate days remaining for reminders
+    days_remaining = 0
+    if is_reminder:
+        try:
+            event_date = date.fromisoformat(event["date"])
+            days_remaining = (event_date - date.today()).days
+        except (ValueError, TypeError):
+            pass
+
+    messages = []
+    for inv in event["invitees"]:
+        if not inv.get("phone"):
+            continue
+        if contact_ids and inv["contact_id"] not in contact_ids:
+            continue
+
+        short_url = f"https://{PUBLIC_DOMAIN}/r/{inv.get('short_token', '')}"
+        if is_reminder:
+            msg = sms_service.format_reminder_sms(event, days_remaining, short_url)
+        else:
+            msg = sms_service.format_sms_message(event, short_url)
+
+        messages.append({
+            "contact_id": inv["contact_id"],
+            "name": inv["name"],
+            "phone": inv["phone"],
+            "message": msg,
+        })
+
+    if not messages:
+        flash("No SMS recipients found.", "error")
+        return redirect(url_for("admin.event_detail", event_id=event_id))
+
+    # Generate a test message (use first invitee's URL as example)
+    test_url = f"https://{PUBLIC_DOMAIN}/r/TEST"
+    if is_reminder:
+        test_message = sms_service.format_reminder_sms(event, days_remaining, test_url)
+    else:
+        test_message = sms_service.format_sms_message(event, test_url)
+
+    return render_template("sms_preview.html",
+        event=event, messages=messages, is_reminder=is_reminder, test_message=test_message)
+
+
+@admin_bp.route("/events/<event_id>/sms-send", methods=["POST"])
+def send_sms_custom(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    profile = get_sender_profile(event.get("sender_profile", "primary"))
+    sms_type = request.form.get("sms_type", "invitation")
+    contact_ids = request.form.getlist("contact_id")
+
+    sent_count = 0
+    errors = []
+
+    for contact_id in contact_ids:
+        phone = request.form.get(f"phone_{contact_id}", "")
+        message_text = request.form.get(f"message_{contact_id}", "")
+        if not phone or not message_text:
+            continue
+
+        # Find invitee name
+        inv_name = contact_id
+        for inv in event["invitees"]:
+            if inv["contact_id"] == contact_id:
+                inv_name = inv["name"]
+                break
+
+        try:
+            sms_service.send_raw_sms(phone, message_text, sender_profile=profile)
+            if sms_type == "invitation":
+                event_service.mark_sms_sent(event_id, contact_id)
+            sent_count += 1
+        except Exception as e:
+            errors.append(f"SMS to {inv_name}: {e}")
+
+    if sent_count:
+        flash(f"Sent {sent_count} SMS message(s).", "success")
+    if errors:
+        for err in errors:
+            flash(err, "error")
+
+    return redirect(url_for("admin.event_detail", event_id=event_id))
+
+
+@admin_bp.route("/events/<event_id>/sms-test", methods=["POST"])
+def send_test_sms(event_id):
+    event = event_service.get_event(event_id)
+    if not event:
+        flash("Event not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    profile = get_sender_profile(event.get("sender_profile", "primary"))
+    test_phone = request.form.get("test_phone", "").strip()
+    test_message = request.form.get("test_message", "").strip()
+
+    if not test_phone or not test_message:
+        flash("Phone number and message are required.", "error")
+        return redirect(url_for("admin.event_detail", event_id=event_id))
+
+    try:
+        sms_service.send_raw_sms(test_phone, test_message, sender_profile=profile)
+        flash(f"Test SMS sent to {test_phone}.", "success")
+    except Exception as e:
+        flash(f"Test SMS failed: {e}", "error")
+
+    return redirect(url_for("admin.event_detail", event_id=event_id))
+
+
 # --- Backup ---
 
 @admin_bp.route("/backup", methods=["POST"])
